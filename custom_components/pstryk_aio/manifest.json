@@ -1,8 +1,8 @@
 {
   "domain": "pstryk_aio",
   "name": "Pstryk AiO",
-  "documentation": "https://github.com/kubass4/ha-pstryk-aio",
-  "issue_tracker": "https://github.com/kubass4/ha-pstryk-aio/issues",
+  "documentation": "https://github.com/kubass4/Pstryk-all-in-one",
+  "issue_tracker": "https://github.com/kubass4/Pstryk-all-in-one/issues",
   "requirements": [
     "aiohttp>=3.9.0"
   ],
