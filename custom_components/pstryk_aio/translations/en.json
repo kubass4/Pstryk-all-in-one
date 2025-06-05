@@ -1,0 +1,84 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Pstryk AIO Setup",
+        "description": "Enter your Pstryk.pl credentials.",
+        "data": {
+          "api_key": "API Key"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to Pstryk API. Please check your network connection and API status.",
+      "invalid_auth": "Invalid email or password. Please check your credentials.",
+      "unknown": "An unknown error occurred. Please check logs for details."
+    },
+    "abort": {
+      "already_configured": "This Pstryk.pl account is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Pstryk AIO Options",
+        "description": "Set integration options, including price thresholds (PLN/kWh) and update interval.",
+        "data": {
+          "cheap_purchase_price_threshold": "Cheap Purchase Price Threshold",
+          "expensive_purchase_price_threshold": "Expensive Purchase Price Threshold",
+          "cheap_sale_price_threshold": "Cheap Sale Price Threshold",
+          "expensive_sale_price_threshold": "Expensive Sale Price Threshold",
+          "update_interval": "Data Update Interval (minutes)"
+        }
+      }
+    },
+    "error": {
+        "invalid_thresholds": "Expensive price threshold must be greater than cheap price threshold."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "pstryk_aio_current_buy_price": {
+        "name": "{config_entry_name} Current energy purchase price"
+      },
+      "pstryk_aio_current_sell_price": {
+        "name": "{config_entry_name} Current energy selling price"
+      },
+      "pstryk_aio_predicted_buy_price_next_hour": {
+        "name": "{config_entry_name} Predicted purchase price (next hour)"
+      },
+      "pstryk_aio_daily_consumption": {
+        "name": "{config_entry_name} Daily energy consumption"
+      },
+      "pstryk_aio_daily_cost": {
+        "name": "{config_entry_name} Daily energy cost"
+      },
+      "pstryk_aio_monthly_consumption": {
+        "name": "{config_entry_name} Monthly energy consumption"
+      },
+      "pstryk_aio_monthly_cost": {
+        "name": "{config_entry_name} Monthly energy cost"
+      },
+      "pstryk_aio_yearly_consumption": {
+        "name": "{config_entry_name} Yearly energy consumption"
+      },
+      "pstryk_aio_yearly_cost": {
+        "name": "{config_entry_name} Yearly energy cost"
+      },
+      "pstryk_aio_account_balance": {
+        "name": "{config_entry_name} Account balance"
+      },
+      "pstryk_aio_next_payment_date": {
+        "name": "{config_entry_name} Next payment date"
+      }
+    },
+    "binary_sensor": {
+      "pstryk_aio_cheap_price_active": {
+        "name": "{config_entry_name} Cheap energy active"
+      },
+      "pstryk_aio_expensive_price_active": {
+        "name": "{config_entry_name} Expensive energy active"
+      }
+    }
+  }
+}

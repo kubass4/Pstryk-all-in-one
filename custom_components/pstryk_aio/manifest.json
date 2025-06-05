@@ -1,0 +1,17 @@
+{
+  "domain": "pstryk_aio",
+  "name": "Pstryk AiO",
+  "documentation": "https://github.com/kubass4/ha-pstryk-aio",
+  "issue_tracker": "https://github.com/kubass4/ha-pstryk-aio/issues",
+  "requirements": [
+    "aiohttp>=3.9.0"
+  ],
+  "codeowners": [
+    "@kubass4"
+  ],
+  "iot_class": "cloud_polling",
+  "version": "0.1.0",
+  "config_flow": true,
+  "dependencies": [],
+  "after_dependencies": []
+}

@@ -1,0 +1,84 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Konfiguracja Pstryk AIO",
+        "description": "Wprowadź swoje dane logowania do Pstryk.pl.",
+        "data": {
+          "api_key": "Klucz API"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Nie udało się połączyć z API Pstryk. Sprawdź połączenie sieciowe i status API.",
+      "invalid_auth": "Nieprawidłowy email lub hasło. Sprawdź swoje dane logowania.",
+      "unknown": "Wystąpił nieznany błąd. Sprawdź logi, aby uzyskać szczegółowe informacje."
+    },
+    "abort": {
+      "already_configured": "To konto Pstryk.pl jest już skonfigurowane."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opcje Pstryk AIO",
+        "description": "Ustaw opcje integracji, w tym progi cenowe (PLN/kWh) i interwał aktualizacji.",
+        "data": {
+          "cheap_purchase_price_threshold": "Próg taniej ceny zakupu",
+          "expensive_purchase_price_threshold": "Próg drogiej ceny zakupu",
+          "cheap_sale_price_threshold": "Próg taniej ceny sprzedaży",
+          "expensive_sale_price_threshold": "Próg drogiej ceny sprzedaży",
+          "update_interval": "Interwał aktualizacji danych (w minutach)"
+        }
+      }
+    },
+    "error": {
+        "invalid_thresholds": "Próg drogiej energii musi być wyższy niż próg taniej energii."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "pstryk_aio_current_buy_price": {
+        "name": "{config_entry_name} Aktualna cena zakupu energii"
+      },
+      "pstryk_aio_current_sell_price": {
+        "name": "{config_entry_name} Aktualna cena sprzedaży energii"
+      },
+      "pstryk_aio_predicted_buy_price_next_hour": {
+        "name": "{config_entry_name} Prognozowana cena zakupu (następna godzina)"
+      },
+      "pstryk_aio_daily_consumption": {
+        "name": "{config_entry_name} Dzienne zużycie energii"
+      },
+      "pstryk_aio_daily_cost": {
+        "name": "{config_entry_name} Dzienny koszt energii"
+      },
+      "pstryk_aio_monthly_consumption": {
+        "name": "{config_entry_name} Miesięczne zużycie energii"
+      },
+      "pstryk_aio_monthly_cost": {
+        "name": "{config_entry_name} Miesięczny koszt energii"
+      },
+      "pstryk_aio_yearly_consumption": {
+        "name": "{config_entry_name} Roczne zużycie energii"
+      },
+      "pstryk_aio_yearly_cost": {
+        "name": "{config_entry_name} Roczny koszt energii"
+      },
+      "pstryk_aio_account_balance": {
+        "name": "{config_entry_name} Saldo konta"
+      },
+      "pstryk_aio_next_payment_date": {
+        "name": "{config_entry_name} Data następnej płatności"
+      }
+    },
+    "binary_sensor": {
+      "pstryk_aio_cheap_price_active": {
+        "name": "{config_entry_name} Tania energia aktywna"
+      },
+      "pstryk_aio_expensive_price_active": {
+        "name": "{config_entry_name} Droga energia aktywna"
+      }
+    }
+  }
+}
