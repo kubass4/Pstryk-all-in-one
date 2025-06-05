@@ -16,18 +16,15 @@ Integracja Home Assistant dla serwisu Pstryk.pl, zapewniająca dostęp do danych
 
 ### Zalecana metoda (HACS)
 
-Najprostszym sposobem instalacji jest użycie [HACS (Home Assistant Community Store)](https://hacs.xyz/).
-
 1.  Upewnij się, że masz zainstalowany HACS.
 2.  W Home Assistant przejdź do HACS -> Integracje.
-3.  Kliknij przycisk "+" w prawym dolnym rogu.
-4.  Dodaj to repozytorium jako niestandardowe repozytorium:
+3.  Dodaj to repozytorium jako niestandardowe repozytorium:
     *   W HACS -> Integracje, kliknij trzy kropki w prawym górnym rogu i wybierz "Niestandardowe repozytoria".
     *   Wklej URL tego repozytorium: `https://github.com/kubass4/Pstryk-all-in-one`
     *   Wybierz kategorię "Integracja".
     *   Kliknij "Dodaj".
-5.  Znajdź "Pstryk AIO" na liście i kliknij "Zainstaluj".
-6.  Uruchom ponownie Home Assistant.
+4.  Znajdź "Pstryk AIO" na liście i kliknij "Zainstaluj".
+5.  Uruchom ponownie Home Assistant.
 
 ### Instalacja ręczna
 
@@ -53,9 +50,9 @@ Integracja utworzy sensory dla dostępnych danych.
 Integracja tworzy następujące sensory:
 
 *   `sensor.pstryk_aio_obecna_cena_zakupu_pradu`
-*   `sensor.pstryk_aio_cena_zakupu_pradu_jutro` (średnia cena na jutro)
+*   `sensor.pstryk_aio_cena_zakupu_pradu_jutro`
 *   `sensor.pstryk_aio_obecna_cena_sprzedazy_pradu`
-*   `sensor.pstryk_aio_cena_sprzedazy_pradu_jutro` (średnia cena na jutro)
+*   `sensor.pstryk_aio_cena_sprzedazy_pradu_jutro`
 *   `sensor.pstryk_aio_dzienne_koszty_zuzycia_energii`
 *   `sensor.pstryk_aio_dzienna_wartosc_produkcji_energii`
 *   `sensor.pstryk_aio_saldo_rozliczeniowe_miesieczne_pln`
@@ -68,12 +65,6 @@ Integracja tworzy następujące sensory:
 *   `sensor.pstryk_aio_miesieczna_produkcja_energii_kwh`
 *   `sensor.pstryk_aio_miesieczne_koszty_zuzycia_energii_pln`
 *   `sensor.pstryk_aio_miesieczna_wartosc_produkcji_energii_pln`
-
-*(Uwaga: ID encji używają stałego prefiksu `pstryk_aio` bez dynamicznej nazwy licznika, zgodnie z ostatnimi zmianami.)*
-
-## Przykładowa konfiguracja Lovelace
-
-Plik `price_sensors.yaml` w głównym katalogu repozytorium zawiera przykładową konfigurację karty Lovelace do wyświetlania sensorów cenowych. Możesz go użyć jako punktu wyjścia do stworzenia własnej karty. Pamiętaj, aby dostosować `entity_id` w YAML do nowych, statycznych ID encji.
 
 ## Wsparcie
 
