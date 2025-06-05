@@ -1,0 +1,1 @@
+# Pstryk-all-in-one
