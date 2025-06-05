@@ -1,4 +1,4 @@
-# Pstryk AIO Home Assistant Integration
+# Pstryk All in One - Home Assistant 
 
 Integracja Home Assistant dla serwisu Pstryk.pl, zapewniająca dostęp do danych o cenach energii (zakup/sprzedaż), zużyciu, produkcji, kosztach i saldzie rozliczeniowym.
 
