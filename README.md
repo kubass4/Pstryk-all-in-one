@@ -40,7 +40,7 @@ Po ponownym uruchomieniu Home Assistant:
 1.  Przejdź do Ustawienia -> Urządzenia i usługi.
 2.  Kliknij przycisk "Dodaj integrację".
 3.  Wyszukaj "Pstryk AIO".
-4.  Wprowadź swój Klucz API Pstryk.pl. Klucz API znajdziesz w panelu Pstryk.pl w sekcji Ustawienia -> API.
+4.  Wprowadź swój Klucz API Pstryk.pl. Klucz API znajdziesz w panelu Pstryk.pl w sekcji Konto -> Urządzenia i integracje -> Klucz API.
 5.  Skonfiguruj opcje, takie jak progi cenowe i interwał aktualizacji.
 6.  Zakończ konfigurację.
 
