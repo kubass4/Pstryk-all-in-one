@@ -2,12 +2,6 @@
 
 Integracja Pstryk All-in-One dostarcza wielu sensorów, które można wykorzystać do budowy zaawansowanych i informacyjnych dashboardów oraz kart w Home Assistant. Poniżej znajdziesz przykłady oraz inspiracje, jak efektywnie wizualizować dane o zużyciu, produkcji i kosztach energii.
 
-### Ogólny Dashboard
-
-Możesz stworzyć przejrzysty dashboard pokazujący kluczowe informacje o cenach energii, zużyciu i produkcji, podobny do poniższego:
-
-![Przykładowy dashboard](images/dashboard_example.png)
-
 ### Wymagane Dodatki (HACS) dla Zaawansowanych Kart
 
 Aby w pełni odtworzyć bardziej złożone karty lub stworzyć własne zaawansowane wizualizacje, będziesz potrzebować następujących dodatków, które można zainstalować przez HACS:
@@ -21,13 +15,13 @@ Upewnij się, że masz zainstalowane te komponenty, jeśli planujesz korzystać 
 
 ---
 
-#### 1. Dashboard z wszystkimi kartami
+### 1. Dashboard z wszystkimi kartami
 
 Dashboard, który pokazuje pełne możliwości integracji Pstryk All-in-One. Jeśli potrzebujesz tylko kilku kart z dashboardu, to po jego dodaniu możesz go dowolnie edytować i wykorzystać tylko te karty które są Ci potrzebne.
 
 ![Przykładowy dashboard](images/dashboard_example.png)
 
-*   **Opis:** Dashboard wyświetla:
+*   **Dashboard wyświetla:** 
     *   Ceny zakupu i sprzedaży energii elektrycznej dziś.
     *   Ceny zakupu i sprzedaży energii elektrycznej jutro (dane dostępne przeważnie po godzinie 16:00).
     *   Aktualna cena zakupu i sprzedaży energii elektrycznej.
@@ -50,7 +44,9 @@ Dashboard, który pokazuje pełne możliwości integracji Pstryk All-in-One. Je�
 
 *   **Co potrzebujesz:**
     *   Utworzenie pomocnika `input_select.statystyki_czas` (Ustawienia -> Urządzenia oraz usługi -> Pomocnicy -> Utwórz pomocnika -> wybór -> Uzupełnij pola jak na screenie poniżej).
-    *   ![Pomocnik Statystyki Czasu](images/helper.png)
+    
+    ![Pomocnik Statystyki Czasu](images/helper.png)
+
 *   **Wykorzystane dodatki:** `custom:button-card`, `custom:apexcharts-card`, `custom:mini-graph-card`.
 
 *   **Instalacja:**
@@ -63,7 +59,7 @@ Dashboard, który pokazuje pełne możliwości integracji Pstryk All-in-One. Je�
 
 ---
 
-#### 2. Karta Podsumowania Dziennego / Miesięcznego
+### 2. Karta Podsumowania Dziennego / Miesięcznego
 
 **Widok Dzienny:**
 
@@ -86,7 +82,9 @@ Dashboard, który pokazuje pełne możliwości integracji Pstryk All-in-One. Je�
 
 *   **Co potrzebujesz:**
     *   Utworzenie pomocnika `input_select.statystyki_czas` (Ustawienia -> Urządzenia oraz usługi -> Pomocnicy -> Utwórz pomocnika -> wybór -> Uzupełnij pola jak na screenie poniżej).
-    *   ![Pomocnik Statystyki Czasu](images/helper.png)
+
+    ![Pomocnik Statystyki Czasu](images/helper.png)
+
 *   **Wykorzystane dodatki:** `custom:button-card`.
 
 *   **Instalacja:**
