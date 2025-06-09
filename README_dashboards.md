@@ -66,9 +66,11 @@ Dashboard, który pokazuje pełne możliwości integracji Pstryk All-in-One. Je�
 #### 2. Karta Podsumowania Dziennego / Miesięcznego
 
 **Widok Dzienny:**
+
 ![Karta Podsumowania - Widok dzienny](images/daily_app.png)
 
 **Widok Miesięczny:**
+
 ![Karta Podsumowania - Widok miesięczny](images/monthly_app.png)
 
 *   **Opis:** Ta karta wyświetla:
