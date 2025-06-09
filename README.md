@@ -3,6 +3,8 @@
 
 Integracja Home Assistant dla serwisu Pstryk.pl, zapewniająca dostęp do danych o cenach energii (zakup/sprzedaż), zużyciu, produkcji, kosztach i saldzie rozliczeniowym.
 
+![Przykładowy dashboard](images/dashboard_example.png)
+
 ## Funkcje
 
 *   Pobieranie aktualnych i przyszłych (jutrzejszych) cen zakupu i sprzedaży energii.
@@ -50,7 +52,7 @@ Integracja utworzy sensory dla dostępnych danych.
 
 Jeśli chcesz uzyskać widok jak w dashboardzie poniżej, to przejdź do ![Dashboardy](README_dashboards.md) 
 
-![Przykładowy dashboard](images/dashboard_example.png)
+![Przykładowy dashboard](images/dashboard.png)
 
 ## Sensory
 

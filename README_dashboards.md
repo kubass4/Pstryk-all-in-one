@@ -1,4 +1,5 @@
 ## Dashboardy i Karty
+[![Buy me a coffee](https://img.buymeacoffee.com/button-api/?slug=kubass4&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=FFFFFF&text=Buy+me+a+coffee)](https://www.buymeacoffee.com/kubass4)
 
 Integracja Pstryk All-in-One dostarcza wielu sensorów, które można wykorzystać do budowy zaawansowanych i informacyjnych dashboardów oraz kart w Home Assistant. Poniżej znajdziesz przykłady oraz inspiracje, jak efektywnie wizualizować dane o zużyciu, produkcji i kosztach energii.
 
