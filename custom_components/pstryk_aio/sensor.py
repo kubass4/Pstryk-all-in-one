@@ -244,7 +244,7 @@ class PstrykUniversalSensor(CoordinatorEntity, SensorEntity):
             except (TypeError, ValueError) as e:
                 _LOGGER.warning(f"({self.name}) Error parsing time for price frame: {frame}, error: {e}")
                 continue
-        _LOGGER.warning(
+        _LOGGER.debug(
             f"({self.name}) Could not find current price frame for {now_utc} by precise time match. "
             "The sensor value will be None if no frame is active."
         )
