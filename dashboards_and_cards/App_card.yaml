@@ -1,0 +1,676 @@
+type: vertical-stack
+cards:
+  - type: horizontal-stack
+    cards:
+      - type: custom:button-card
+        name: Dziś
+        icon: mdi:calendar-today
+        layout: icon_name
+        entity: input_select.statystyki_czas
+        show_state: false
+        show_name: true
+        show_icon: true
+        tap_action:
+          action: call-service
+          service: input_select.select_option
+          service_data:
+            entity_id: input_select.statystyki_czas
+            option: Dziś
+        styles:
+          card:
+            - flex: 1
+            - margin: 10px 4px 0px 0px
+            - border-radius: 25px
+            - padding: 14px 20px
+            - font-family: >-
+                -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica
+                Neue', Arial, sans-serif
+            - background: |
+                [[[
+                  if (entity.state === 'Dziś') return 'rgba(0, 122, 255, 1)';
+                  return 'rgba(28, 28, 30, 0.6)';
+                ]]]
+            - box-shadow: |
+                [[[
+                  if (entity.state === 'Dziś') return '0 8px 25px rgba(0, 122, 255, 0.35)';
+                  return '0 4px 15px rgba(0,0,0,0.1)';
+                ]]]
+            - backdrop-filter: blur(20px) saturate(180%)
+            - transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)
+          grid:
+            - grid-template-areas: "'i n'"
+            - grid-template-columns: min-content auto
+            - justify-content: center
+            - align-items: center
+            - column-gap: 10px
+          name:
+            - font-family: >-
+                -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica
+                Neue', Arial, sans-serif
+            - font-weight: 600
+            - font-size: 17px
+            - letter-spacing: "-0.02em"
+            - color: |
+                [[[
+                  if (entity.state === 'Dziś') return 'white';
+                  return 'rgba(255,255,255,0.9)';
+                ]]]
+          icon:
+            - width: 22px
+            - height: 22px
+            - color: |
+                [[[
+                  if (entity.state === 'Dziś') return 'white';
+                  return 'rgba(255,255,255,0.7)';
+                ]]]
+      - type: custom:button-card
+        name: Ten miesiąc
+        icon: mdi:calendar-month
+        layout: icon_name
+        entity: input_select.statystyki_czas
+        show_state: false
+        show_name: true
+        show_icon: true
+        tap_action:
+          action: call-service
+          service: input_select.select_option
+          service_data:
+            entity_id: input_select.statystyki_czas
+            option: Ten miesiąc
+        styles:
+          card:
+            - flex: 1
+            - margin: 10px 0px 0px 4px
+            - padding: 14px 20px
+            - border-radius: 25px
+            - font-family: >-
+                -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica
+                Neue', Arial, sans-serif
+            - background: |
+                [[[
+                  if (entity.state === 'Ten miesiąc') return 'rgba(0, 122, 255, 1)';
+                  return 'rgba(28, 28, 30, 0.6)';
+                ]]]
+            - box-shadow: |
+                [[[
+                  if (entity.state === 'Ten miesiąc') return '0 8px 25px rgba(0, 122, 255, 0.35)';
+                  return '0 4px 15px rgba(0,0,0,0.1)';
+                ]]]
+            - backdrop-filter: blur(20px) saturate(180%)
+            - transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)
+          grid:
+            - grid-template-areas: "'i n'"
+            - grid-template-columns: min-content auto
+            - justify-content: center
+            - align-items: center
+            - column-gap: 10px
+          name:
+            - font-family: >-
+                -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica
+                Neue', Arial, sans-serif
+            - font-weight: 600
+            - font-size: 17px
+            - letter-spacing: "-0.02em"
+            - color: |
+                [[[
+                  if (entity.state === 'Ten miesiąc') return 'white';
+                  return 'rgba(255,255,255,0.9)';
+                ]]]
+          icon:
+            - width: 22px
+            - height: 22px
+            - color: |
+                [[[
+                  if (entity.state === 'Ten miesiąc') return 'white';
+                  return 'rgba(255,255,255,0.7)';
+                ]]]
+  - type: custom:button-card
+    entity: input_select.statystyki_czas
+    show_name: false
+    show_icon: false
+    show_state: false
+    styles:
+      card:
+        - background: rgba(28, 28, 30, 0.8)
+        - border-radius: 20px
+        - padding: 20px
+        - box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08)
+        - backdrop-filter: blur(20px) saturate(180%)
+        - margin-bottom: 16px
+        - font-family: >-
+            -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica
+            Neue', Arial, sans-serif
+      grid:
+        - grid-template-areas: |
+            "rachunek saldo"
+        - grid-template-columns: 1fr 1fr
+        - grid-template-rows: auto
+        - gap: 16px
+      custom_fields:
+        rachunek:
+          - align-self: stretch
+        saldo:
+          - align-self: stretch
+    custom_fields:
+      rachunek: |
+        [[[
+          const isToday = entity.state === 'Dziś';
+          const entityId = isToday ? 'sensor.pstryk_aio_saldo_rozliczeniowe_dzienne_pln' : 'sensor.pstryk_aio_saldo_rozliczeniowe_miesieczne_pln';
+          const entityState = states[entityId];
+          const state = entityState ? parseFloat(entityState.state).toFixed(2) : 'N/A';
+          const unit = entityState && entityState.attributes.unit_of_measurement ? entityState.attributes.unit_of_measurement : 'zł';
+          return `
+            <div style="
+              display: flex; flex-direction: column; justify-content: space-between; height: 100%; 
+              background: rgba(34, 139, 34, 0.12);
+              border-radius: 16px; padding: 20px; box-sizing: border-box;
+              position: relative; overflow: hidden; cursor: pointer;
+              font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+            ">
+              <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: auto;">
+                <div style="
+                  width: 44px; height: 44px; border-radius: 12px; 
+                  background: rgba(34, 139, 34, 0.18);
+                  display: flex; align-items: center; justify-content: center;
+                  flex-shrink: 0;
+                ">
+                  <ha-icon icon="mdi:scale-balance" style="color: rgb(34, 139, 34); font-size: 22px;"></ha-icon>
+                </div>
+                <div style="
+                  font-size: clamp(24px, 4vw, 36px); 
+                  font-weight: 600; 
+                  color: rgba(255,255,255,0.95); 
+                  line-height: 1; 
+                  font-variant-numeric: tabular-nums;
+                  text-align: right;
+                  margin-left: 12px;
+                  flex: 1;
+                ">${state}</div>
+              </div>
+              <div style="text-align: center; margin-top: 8px;">
+                <div style="font-size: 12px; color: rgba(255,255,255,0.95); font-weight: 500; margin-bottom: 4px; text-align: right;">${unit}</div>
+                <div style="font-size: 13px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;">Rachunek</div>
+              </div>
+            </div>
+          `;
+        ]]]
+      saldo: |
+        [[[
+          const isToday = entity.state === 'Dziś';
+          const entityId = isToday ? 'sensor.pstryk_aio_saldo_energetyczne_dzienne_kwh' : 'sensor.pstryk_aio_saldo_energetyczne_miesieczne_kwh';
+          const entityState = states[entityId];
+          const state = entityState ? parseFloat(entityState.state).toFixed(2) : 'N/A';
+          const unit = entityState && entityState.attributes.unit_of_measurement ? entityState.attributes.unit_of_measurement : 'kWh';
+          return `
+            <div style="
+              display: flex; flex-direction: column; justify-content: space-between; height: 100%; 
+              background: rgba(255, 140, 0, 0.12);
+              border-radius: 16px; padding: 20px; box-sizing: border-box;
+              position: relative; overflow: hidden; cursor: pointer;
+              font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+            ">
+              <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: auto;">
+                <div style="
+                  width: 44px; height: 44px; border-radius: 12px; 
+                  background: rgba(255, 140, 0, 0.18);
+                  display: flex; align-items: center; justify-content: center;
+                  flex-shrink: 0;
+                ">
+                  <ha-icon icon="mdi:transmission-tower" style="color: rgb(255, 140, 0); font-size: 22px;"></ha-icon>
+                </div>
+                <div style="
+                  font-size: clamp(24px, 4vw, 36px); 
+                  font-weight: 600; 
+                  color: rgba(255,255,255,0.95); 
+                  line-height: 1; 
+                  font-variant-numeric: tabular-nums;
+                  text-align: right;
+                  margin-left: 12px;
+                  flex: 1;
+                ">${state}</div>
+              </div>
+              <div style="text-align: center; margin-top: 8px;">
+                <div style="font-size: 12px; color: rgba(255,255,255,0.95); font-weight: 500; margin-bottom: 4px; text-align: right;">${unit}</div>
+                <div style="font-size: 13px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;">Saldo Energii</div>
+              </div>
+            </div>
+          `;
+        ]]]
+  - type: custom:button-card
+    entity: input_select.statystyki_czas
+    show_name: false
+    show_icon: false
+    show_state: false
+    styles:
+      card:
+        - background: rgba(28, 28, 30, 0.8)
+        - border-radius: 20px
+        - padding: 20px
+        - box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08)
+        - backdrop-filter: blur(20px) saturate(180%)
+        - font-family: >-
+            -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica
+            Neue', Arial, sans-serif
+      grid:
+        - grid-template-areas: |
+            [[[
+              if (entity.state === 'Dziś') {
+                return `
+                  "pobrana sprzedana"
+                  "koszt_p wartosc_s"
+                  "zmarnowana_e sprzedane_t"
+                  "cena_p cena_s"
+                `;
+              } else {
+                return `
+                  "pobrana sprzedana"
+                  "koszt_p wartosc_s"
+                `;
+              }
+            ]]]
+        - grid-template-columns: 1fr 1fr
+        - grid-template-rows: |
+            [[[
+              if (entity.state === 'Dziś') return 'auto auto auto auto';
+              return 'auto auto';
+            ]]]
+        - gap: 12px
+      custom_fields:
+        pobrana:
+          - align-self: stretch
+        sprzedana:
+          - align-self: stretch
+        koszt_p:
+          - align-self: stretch
+        wartosc_s:
+          - align-self: stretch
+        zmarnowana_e:
+          - align-self: stretch
+          - display: |
+              [[[
+                if (entity.state === 'Dziś') return 'block';
+                return 'none';
+              ]]]
+        sprzedane_t:
+          - align-self: stretch
+          - display: |
+              [[[
+                if (entity.state === 'Dziś') return 'block';
+                return 'none';
+              ]]]
+        cena_p:
+          - align-self: stretch
+          - display: |
+              [[[
+                if (entity.state === 'Dziś') return 'block';
+                return 'none';
+              ]]]
+        cena_s:
+          - align-self: stretch
+          - display: |
+              [[[
+                if (entity.state === 'Dziś') return 'block';
+                return 'none';
+              ]]]
+    custom_fields:
+      pobrana: |
+        [[[
+          const isToday = states['input_select.statystyki_czas'].state === 'Dziś';
+          const entityId = isToday ? 'sensor.pstryk_aio_dzienne_zuzycie_energii_kwh' : 'sensor.pstryk_aio_miesieczne_zuzycie_energii_kwh';
+          const entityState = states[entityId];
+          const state = entityState ? parseFloat(entityState.state).toFixed(2) : 'N/A';
+          const unit = entityState && entityState.attributes.unit_of_measurement ? entityState.attributes.unit_of_measurement : 'kWh';
+          return `
+            <div style="
+              display: flex; flex-direction: column; justify-content: space-between; height: 100%; 
+              background: rgba(220, 20, 60, 0.12);
+              border-radius: 16px; padding: 16px; 
+              box-sizing: border-box; position: relative; overflow: hidden; cursor: pointer;
+              font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;">
+              <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: auto;">
+                <div style="width: 36px; height: 36px; border-radius: 10px; 
+                            background: rgba(220, 20, 60, 0.18); 
+                            display: flex; align-items: center; justify-content: center;
+                            flex-shrink: 0;">
+                  <ha-icon icon="mdi:lightning-bolt" style="color: rgb(220, 20, 60); font-size: 18px;"></ha-icon>
+                </div>
+                <div style="
+                  font-size: clamp(28px, 5vw, 42px); 
+                  font-weight: 600; 
+                  color: rgba(255,255,255,0.95); 
+                  line-height: 1; 
+                  font-variant-numeric: tabular-nums;
+                  text-align: right;
+                  margin-left: 8px;
+                  flex: 1;
+                ">${state}</div>
+              </div>
+              <div style="text-align: center; margin-top: 6px;">
+                <div style="font-size: 11px; color: rgba(255,255,255,0.95); font-weight: 500; margin-bottom: 3px; text-align: right;">${unit}</div>
+                <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;">Pobrana energia</div>
+              </div>
+            </div>
+          `;
+        ]]]
+      sprzedana: |
+        [[[
+          const isToday = states['input_select.statystyki_czas'].state === 'Dziś';
+          const entityId = isToday ? 'sensor.pstryk_aio_dzienna_produkcja_energii_kwh' : 'sensor.pstryk_aio_miesieczna_produkcja_energii_kwh';
+          const entityState = states[entityId];
+          let state;
+          if (isToday && entityState && entityState.attributes && entityState.attributes.hourly_breakdown_current_day) {
+            state = entityState.attributes.hourly_breakdown_current_day.reduce((sum, hour) => sum + parseFloat(hour.value || 0), 0).toFixed(2);
+          } else if (entityState) {
+            state = parseFloat(entityState.state).toFixed(2);
+          } else {
+            state = 'N/A';
+          }
+          const unit = entityState && entityState.attributes.unit_of_measurement ? entityState.attributes.unit_of_measurement : 'kWh';
+          return `
+            <div style="
+              display: flex; flex-direction: column; justify-content: space-between; height: 100%; 
+              background: rgba(34, 139, 34, 0.12);
+              border-radius: 16px; padding: 16px; 
+              box-sizing: border-box; position: relative; overflow: hidden; cursor: pointer;
+              font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;">
+              <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: auto;">
+                <div style="width: 36px; height: 36px; border-radius: 10px; 
+                            background: rgba(34, 139, 34, 0.18); 
+                            display: flex; align-items: center; justify-content: center;
+                            flex-shrink: 0;">
+                  <ha-icon icon="mdi:solar-power" style="color: rgb(34, 139, 34); font-size: 18px;"></ha-icon>
+                </div>
+                <div style="
+                  font-size: clamp(28px, 5vw, 42px); 
+                  font-weight: 600; 
+                  color: rgba(255,255,255,0.95); 
+                  line-height: 1; 
+                  font-variant-numeric: tabular-nums;
+                  text-align: right;
+                  margin-left: 8px;
+                  flex: 1;
+                ">${state}</div>
+              </div>
+              <div style="text-align: center; margin-top: 6px;">
+                <div style="font-size: 11px; color: rgba(255,255,255,0.95); font-weight: 500; margin-bottom: 3px; text-align: right;">${unit}</div>
+                <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;">Sprzedana energia</div>
+              </div>
+            </div>
+          `;
+        ]]]
+      koszt_p: |
+        [[[
+          const isToday = states['input_select.statystyki_czas'].state === 'Dziś';
+          const entityId = isToday ? 'sensor.pstryk_aio_dzienne_koszty_zuzycia_energii' : 'sensor.pstryk_aio_miesieczne_koszty_zuzycia_energii_pln';
+          const entityState = states[entityId];
+          const state = entityState ? parseFloat(entityState.state).toFixed(2) : 'N/A';
+          const unit = entityState && entityState.attributes.unit_of_measurement ? entityState.attributes.unit_of_measurement : 'zł';
+          return `
+            <div style="
+              display: flex; flex-direction: column; justify-content: space-between; height: 100%; 
+              background: rgba(178, 34, 34, 0.12);
+              border-radius: 16px; padding: 16px; 
+              box-sizing: border-box; position: relative; overflow: hidden; cursor: pointer;
+              font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;">
+              <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: auto;">
+                <div style="width: 36px; height: 36px; border-radius: 10px; 
+                            background: rgba(178, 34, 34, 0.18); 
+                            display: flex; align-items: center; justify-content: center;
+                            flex-shrink: 0;">
+                  <ha-icon icon="mdi:cash-minus" style="color: rgb(178, 34, 34); font-size: 18px;"></ha-icon>
+                </div>
+                <div style="
+                  font-size: clamp(28px, 5vw, 42px); 
+                  font-weight: 600; 
+                  color: rgba(255,255,255,0.95); 
+                  line-height: 1; 
+                  font-variant-numeric: tabular-nums;
+                  text-align: right;
+                  margin-left: 8px;
+                  flex: 1;
+                ">${state}</div>
+              </div>
+              <div style="text-align: center; margin-top: 6px;">
+                <div style="font-size: 11px; color: rgba(255,255,255,0.95); font-weight: 500; margin-bottom: 3px; text-align: right;">${unit}</div>
+                <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;">Koszt poboru</div>
+              </div>
+            </div>
+          `;
+        ]]]
+      wartosc_s: |
+        [[[
+          const isToday = states['input_select.statystyki_czas'].state === 'Dziś';
+          const entityId = isToday ? 'sensor.pstryk_aio_dzienna_wartosc_produkcji_energii' : 'sensor.pstryk_aio_miesieczna_wartosc_produkcji_energii_pln';
+          const entityState = states[entityId];
+          const state = entityState ? parseFloat(entityState.state).toFixed(2) : 'N/A';
+          const unit = entityState && entityState.attributes.unit_of_measurement ? entityState.attributes.unit_of_measurement : 'zł';
+          return `
+            <div style="
+              display: flex; flex-direction: column; justify-content: space-between; height: 100%; 
+              background: rgba(46, 125, 50, 0.12);
+              border-radius: 16px; padding: 16px; 
+              box-sizing: border-box; position: relative; overflow: hidden; cursor: pointer;
+              font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;">
+              <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: auto;">
+                <div style="width: 36px; height: 36px; border-radius: 10px; 
+                            background: rgba(46, 125, 50, 0.18); 
+                            display: flex; align-items: center; justify-content: center;
+                            flex-shrink: 0;">
+                  <ha-icon icon="mdi:cash-plus" style="color: rgb(46, 125, 50); font-size: 18px;"></ha-icon>
+                </div>
+                <div style="
+                  font-size: clamp(28px, 5vw, 42px); 
+                  font-weight: 600; 
+                  color: rgba(255,255,255,0.95); 
+                  line-height: 1; 
+                  font-variant-numeric: tabular-nums;
+                  text-align: right;
+                  margin-left: 8px;
+                  flex: 1;
+                ">${state}</div>
+              </div>
+              <div style="text-align: center; margin-top: 6px;">
+                <div style="font-size: 11px; color: rgba(255,255,255,0.95); font-weight: 500; margin-bottom: 3px; text-align: right;">${unit}</div>
+                <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;">Wartość sprzedaży</div>
+              </div>
+            </div>
+          `;
+        ]]]
+      zmarnowana_e: |
+        [[[
+          let wastedEnergyKwh = 0;
+          const pricesEntity = states['sensor.pstryk_aio_obecna_cena_sprzedazy_pradu'];
+          const productionEntity = states['sensor.pstryk_aio_dzienna_produkcja_energii_kwh'];
+
+          if (states['input_select.statystyki_czas'].state === 'Dziś' && 
+              pricesEntity && pricesEntity.attributes && pricesEntity.attributes.today_prices &&
+              productionEntity && productionEntity.attributes && productionEntity.attributes.hourly_breakdown_current_day) {
+            
+            const todayPrices = pricesEntity.attributes.today_prices;
+            const hourlyProduction = productionEntity.attributes.hourly_breakdown_current_day;
+            
+            const productionMap = new Map();
+            hourlyProduction.forEach(prod => {
+              productionMap.set(new Date(prod.start).toISOString(), parseFloat(prod.value || 0));
+            });
+
+            todayPrices.forEach(priceHour => {
+              if (parseFloat(priceHour.price) === 0) {
+                const productionValue = productionMap.get(new Date(priceHour.start).toISOString());
+                if (productionValue !== undefined) {
+                  wastedEnergyKwh += productionValue;
+                }
+              }
+            });
+          }
+          const state = wastedEnergyKwh.toFixed(2);
+          const unit = 'kWh';
+          return `
+            <div style="
+              display: flex; flex-direction: column; justify-content: space-between; height: 100%; 
+              background: rgba(105, 105, 105, 0.12);
+              border-radius: 16px; padding: 16px; 
+              box-sizing: border-box; position: relative; overflow: hidden; cursor: pointer;
+              font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;">
+              <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: auto;">
+                <div style="width: 36px; height: 36px; border-radius: 10px; 
+                            background: rgba(105, 105, 105, 0.18); 
+                            display: flex; align-items: center; justify-content: center;
+                            flex-shrink: 0;">
+                  <ha-icon icon="mdi:power-plug-off-outline" style="color: rgb(105, 105, 105); font-size: 18px;"></ha-icon>
+                </div>
+                <div style="
+                  font-size: clamp(28px, 5vw, 42px); 
+                  font-weight: 600; 
+                  color: rgba(255,255,255,0.95); 
+                  line-height: 1; 
+                  font-variant-numeric: tabular-nums;
+                  text-align: right;
+                  margin-left: 8px;
+                  flex: 1;
+                ">${state}</div>
+              </div>
+              <div style="text-align: center; margin-top: 6px;">
+                <div style="font-size: 11px; color: rgba(255,255,255,0.95); font-weight: 500; margin-bottom: 3px; text-align: right;">${unit}</div>
+                <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;">Zmarnowana energia</div>
+              </div>
+            </div>
+          `;
+        ]]]
+      sprzedane_t: |
+        [[[
+          let soldCheaplyKwh = 0;
+          const pricesEntity = states['sensor.pstryk_aio_obecna_cena_sprzedazy_pradu'];
+          const productionEntity = states['sensor.pstryk_aio_dzienna_produkcja_energii_kwh'];
+
+          if (states['input_select.statystyki_czas'].state === 'Dziś' && 
+              pricesEntity && pricesEntity.attributes && pricesEntity.attributes.today_prices &&
+              productionEntity && productionEntity.attributes && productionEntity.attributes.hourly_breakdown_current_day) {
+            
+            const todayPrices = pricesEntity.attributes.today_prices;
+            const hourlyProduction = productionEntity.attributes.hourly_breakdown_current_day;
+
+            const productionMap = new Map();
+            hourlyProduction.forEach(prod => {
+              productionMap.set(new Date(prod.start).toISOString(), parseFloat(prod.value || 0));
+            });
+
+            todayPrices.forEach(priceHour => {
+              if (priceHour.is_cheap === true && parseFloat(priceHour.price) !== 0) {
+                const productionValue = productionMap.get(new Date(priceHour.start).toISOString());
+                if (productionValue !== undefined) {
+                  soldCheaplyKwh += productionValue;
+                }
+              }
+            });
+          }
+          const state = soldCheaplyKwh.toFixed(2);
+          const unit = 'kWh';
+          return `
+            <div style="
+              display: flex; flex-direction: column; justify-content: space-between; height: 100%; 
+              background: rgba(255, 193, 7, 0.12);
+              border-radius: 16px; padding: 16px; 
+              box-sizing: border-box; position: relative; overflow: hidden; cursor: pointer;
+              font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;">
+              <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: auto;">
+                <div style="width: 36px; height: 36px; border-radius: 10px; 
+                            background: rgba(255, 193, 7, 0.18); 
+                            display: flex; align-items: center; justify-content: center;
+                            flex-shrink: 0;">
+                  <ha-icon icon="mdi:sale" style="color: rgb(255, 193, 7); font-size: 18px;"></ha-icon>
+                </div>
+                <div style="
+                  font-size: clamp(28px, 5vw, 42px); 
+                  font-weight: 600; 
+                  color: rgba(255,255,255,0.95); 
+                  line-height: 1; 
+                  font-variant-numeric: tabular-nums;
+                  text-align: right;
+                  margin-left: 8px;
+                  flex: 1;
+                ">${state}</div>
+              </div>
+              <div style="text-align: center; margin-top: 6px;">
+                <div style="font-size: 11px; color: rgba(255,255,255,0.95); font-weight: 500; margin-bottom: 3px; text-align: right;">${unit}</div>
+                <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;">Sprzedane tanio</div>
+              </div>
+            </div>
+          `;
+        ]]]
+      cena_p: |
+        [[[
+          const entityId = 'sensor.pstryk_aio_obecna_cena_zakupu_pradu';
+          const entityState = states[entityId];
+          const state = entityState ? parseFloat(entityState.state).toFixed(2) : 'N/A';
+          const unit = entityState && entityState.attributes.unit_of_measurement ? entityState.attributes.unit_of_measurement : 'zł/kWh';
+          return `
+            <div style="
+              display: flex; flex-direction: column; justify-content: space-between; height: 100%; 
+              background: rgba(220, 20, 60, 0.12);
+              border-radius: 16px; padding: 16px; 
+              box-sizing: border-box; position: relative; overflow: hidden; cursor: pointer;
+              font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;">
+              <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: auto;">
+                <div style="width: 36px; height: 36px; border-radius: 10px; 
+                            background: rgba(220, 20, 60, 0.18); 
+                            display: flex; align-items: center; justify-content: center;
+                            flex-shrink: 0;">
+                  <ha-icon icon="mdi:arrow-down-bold-circle-outline" style="color: rgb(220, 20, 60); font-size: 18px;"></ha-icon>
+                </div>
+                <div style="
+                  font-size: clamp(28px, 5vw, 42px); 
+                  font-weight: 600; 
+                  color: rgba(255,255,255,0.95); 
+                  line-height: 1; 
+                  font-variant-numeric: tabular-nums;
+                  text-align: right;
+                  margin-left: 8px;
+                  flex: 1;
+                ">${state}</div>
+              </div>
+              <div style="text-align: center; margin-top: 6px;">
+                <div style="font-size: 11px; color: rgba(255,255,255,0.95); font-weight: 500; margin-bottom: 3px; text-align: right;">${unit}</div>
+                <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;">Cena poboru teraz</div>
+              </div>
+            </div>
+          `;
+        ]]]
+      cena_s: |
+        [[[
+          const entityId = 'sensor.pstryk_aio_obecna_cena_sprzedazy_pradu';
+          const entityState = states[entityId];
+          const state = entityState ? parseFloat(entityState.state).toFixed(2) : 'N/A';
+          const unit = entityState && entityState.attributes.unit_of_measurement ? entityState.attributes.unit_of_measurement : 'zł/kWh';
+          return `
+            <div style="
+              display: flex; flex-direction: column; justify-content: space-between; height: 100%; 
+              background: rgba(76, 175, 80, 0.12);
+              border-radius: 16px; padding: 16px; 
+              box-sizing: border-box; position: relative; overflow: hidden; cursor: pointer;
+              font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;">
+              <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: auto;">
+                <div style="width: 36px; height: 36px; border-radius: 10px; 
+                            background: rgba(76, 175, 80, 0.18); 
+                            display: flex; align-items: center; justify-content: center;
+                            flex-shrink: 0;">
+                  <ha-icon icon="mdi:arrow-up-bold-circle-outline" style="color: rgb(76, 175, 80); font-size: 18px;"></ha-icon>
+                </div>
+                <div style="
+                  font-size: clamp(28px, 5vw, 42px); 
+                  font-weight: 600; 
+                  color: rgba(255,255,255,0.95); 
+                  line-height: 1; 
+                  font-variant-numeric: tabular-nums;
+                  text-align: right;
+                  margin-left: 8px;
+                  flex: 1;
+                ">${state}</div>
+              </div>
+              <div style="text-align: center; margin-top: 6px;">
+                <div style="font-size: 11px; color: rgba(255,255,255,0.95); font-weight: 500; margin-bottom: 3px; text-align: right;">${unit}</div>
+                <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;">Cena sprzedaży teraz</div>
+              </div>
+            </div>
+          `;
+        ]]]

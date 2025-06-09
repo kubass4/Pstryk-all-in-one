@@ -1,0 +1,2087 @@
+button_card_templates:
+  grid_2_col:
+    styles:
+      card:
+        - padding: 0px
+        - box-shadow: none
+        - background: none
+      grid:
+        - grid-template-columns: 1fr 1fr
+        - grid-template-rows: auto
+        - gap: 8px
+      custom_fields:
+        col1:
+          - align-self: stretch
+        col2:
+          - align-self: stretch
+  detail_item_label_instead_of_state:
+    show_state: false
+    show_label: true
+    styles:
+      label:
+        - font-size: 18px
+        - font-weight: bold
+        - color: var(--primary-text-color)
+        - justify-self: start
+        - align-self: start
+      name:
+        - font-size: 13px
+        - color: var(--secondary-text-color)
+        - justify-self: start
+        - align-self: end
+      grid:
+        - grid-template-areas: '"i n" "i l"'
+        - grid-template-columns: min-content auto
+        - grid-template-rows: min-content min-content
+        - column-gap: 10px
+views:
+  - title: Dom
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            icon: mdi:transmission-tower-export
+            heading: Sprzedaż
+            heading_style: title
+          - type: gauge
+            name: Cena Sprzedaży Prądu
+            entity: sensor.pstryk_aio_obecna_cena_sprzedazy_pradu
+            min: 0
+            max: 1.2
+            unit: PLN/kWh
+            severity:
+              green: 0.7
+              yellow: 0.3
+              red: 0
+            needle: true
+          - type: custom:button-card
+            name: |
+              [[[
+                const sellEntity = states['sensor.pstryk_aio_obecna_cena_sprzedazy_pradu'];
+                if (!sellEntity || !sellEntity.attributes.today_prices || sellEntity.attributes.today_prices.length === 0) {
+                  return 'Cena (następna godz.): N/A';
+                }
+
+                const prices = sellEntity.attributes.today_prices;
+                const now = new Date(); // Aktualny czas
+                
+                // Ustalenie początku następnej pełnej godziny
+                const nextHourStart = new Date(now);
+                nextHourStart.setHours(now.getHours() + 1, 0, 0, 0); // Ustawia na początek następnej godziny
+                
+                // Formatowanie czasu startu następnej godziny do porównania (YYYY-MM-DDTHH:00:00)
+                // Musimy uwzględnić strefę czasową z danych, jeśli jest inna niż lokalna przeglądarki.
+                // Dane mają "+02:00", więc musimy być ostrożni.
+                // Najbezpieczniej jest pracować na obiektach Date.
+
+                let nextPriceEntry = null;
+                for (const priceEntry of prices) {
+                  const entryStartDate = new Date(priceEntry.start);
+                  if (entryStartDate.getTime() === nextHourStart.getTime()) {
+                    nextPriceEntry = priceEntry;
+                    break;
+                  }
+                  // Awaryjnie, jeśli nie ma dokładnego dopasowania, a jesteśmy już za obecną godziną,
+                  // a przed następną, szukamy pierwszej przyszłej godziny
+                  if (entryStartDate > now && entryStartDate.getMinutes() === 0 && entryStartDate.getSeconds() === 0 && entryStartDate.getMilliseconds() === 0) {
+                      if (!nextPriceEntry || entryStartDate < new Date(nextPriceEntry.start)) {
+                          // Jeśli jest to pierwsza znaleziona przyszła pełna godzina LUB
+                          // jeśli jest wcześniejsza niż dotychczasowa "najlepsza" przyszła godzina
+                          // (na wypadek gdybyśmy przeszli przez pętlę i nextHourStart było np. na 00:00 następnego dnia,
+                          // a dane jeszcze tego nie miały).
+                          // Dla uproszczenia, jeśli przeszliśmy już aktualną godzinę,
+                          // następna pełna godzina w danych będzie naszym celem.
+                          const currentHourStart = new Date(now);
+                          currentHourStart.setMinutes(0,0,0,0);
+                          if (entryStartDate > currentHourStart && entryStartDate.getHours() === (now.getHours() +1)%24 ) {
+                             nextPriceEntry = priceEntry;
+                             break;
+                          }
+                      }
+                  }
+                }
+                
+                // Jeśli nie znaleziono dla następnej godziny (np. koniec dnia, brak danych na jutro w `today_prices`)
+                // Można by spróbować pobrać z `tomorrow_prices` jeśli taki atrybut istnieje.
+                // Na razie, jeśli nie ma, pokazujemy najbliższą przyszłą.
+                if (!nextPriceEntry) {
+                    // Jeszcze raz, prostsza logika na znalezienie pierwszej przyszłej pełnej godziny
+                    const nowTime = now.getTime();
+                    let foundFuturePrice = null;
+                    for (const priceEntry of prices) {
+                        const entryStartTime = new Date(priceEntry.start).getTime();
+                        if (entryStartTime > nowTime) {
+                            foundFuturePrice = priceEntry;
+                            break; // Bierzemy pierwszą przyszłą
+                        }
+                    }
+                    if (foundFuturePrice) {
+                        nextPriceEntry = foundFuturePrice;
+                    }
+                }
+
+
+                if (nextPriceEntry) {
+                  const hour = new Date(nextPriceEntry.start).getHours().toString().padStart(2, '0');
+                  return `Cena w następnej godzinie od ${hour}:00`;
+                } else {
+                  return 'Cena (następna godz.): N/A';
+                }
+              ]]]
+            label: |
+              [[[
+                const sellEntity = states['sensor.pstryk_aio_obecna_cena_sprzedazy_pradu'];
+                if (!sellEntity || !sellEntity.attributes.today_prices || sellEntity.attributes.today_prices.length === 0) {
+                  return 'N/A';
+                }
+
+                const prices = sellEntity.attributes.today_prices;
+                const now = new Date();
+                const nextHourStart = new Date(now);
+                nextHourStart.setHours(now.getHours() + 1, 0, 0, 0);
+
+                let nextPriceEntry = null;
+                for (const priceEntry of prices) {
+                  const entryStartDate = new Date(priceEntry.start);
+                  if (entryStartDate.getTime() === nextHourStart.getTime()) {
+                    nextPriceEntry = priceEntry;
+                    break;
+                  }
+                }
+                
+                // Fallback, jeśli nie znaleziono dla dokładnie następnej godziny
+                // (np. jesteśmy na końcu dnia, a `today_prices` nie ma wpisu dla 00:00 następnego dnia)
+                // lub gdyby dane były niekompletne. Szukamy pierwszej przyszłej ceny.
+                if (!nextPriceEntry) {
+                    const nowTime = now.getTime();
+                    let foundFuturePrice = null;
+                    for (const priceEntry of prices) {
+                        const entryStartTime = new Date(priceEntry.start).getTime();
+                        if (entryStartTime > nowTime) {
+                            foundFuturePrice = priceEntry;
+                            break; 
+                        }
+                    }
+                    if (foundFuturePrice) {
+                        nextPriceEntry = foundFuturePrice;
+                    }
+                }
+
+                if (nextPriceEntry) {
+                  return `${parseFloat(nextPriceEntry.price).toFixed(2)} PLN/kWh`;
+                } else {
+                  return 'N/A';
+                }
+              ]]]
+            icon: mdi:cash-clock
+            show_label: true
+            styles:
+              card:
+                - background: rgba(128, 128, 128, 0.1)
+                - border: 2px solid var(--secondary-text-color)
+                - border-radius: 12px
+                - padding: 12px
+                - height: 80px
+              icon:
+                - color: var(--primary-text-color)
+                - width: 24px
+              name:
+                - font-size: 14px
+                - color: var(--secondary-text-color)
+              label:
+                - font-size: 18px
+                - font-weight: bold
+                - color: var(--primary-text-color)
+          - type: horizontal-stack
+            cards:
+              - type: custom:button-card
+                name: |
+                  [[[
+                    const sellEntity = states['sensor.pstryk_aio_obecna_cena_sprzedazy_pradu'];
+                    if (!sellEntity || !sellEntity.attributes.today_prices || sellEntity.attributes.today_prices.length === 0) {
+                      return 'Najlepsza sprzedaż: N/A';
+                    }
+
+                    const allPrices = sellEntity.attributes.today_prices;
+                    const highestPrice = Math.max(...allPrices.map(p => p.price));
+                    const bestTime = allPrices.find(p => p.price === highestPrice);
+                    const hour = new Date(bestTime.start).getHours().toString().padStart(2, '0');
+                    return `Najlepsza sprzedaż: ${hour}:00`;
+                  ]]]
+                label: |
+                  [[[
+                    const sellEntity = states['sensor.pstryk_aio_obecna_cena_sprzedazy_pradu'];
+                    if (!sellEntity || !sellEntity.attributes.today_prices || sellEntity.attributes.today_prices.length === 0) {
+                      return 'No data';
+                    }
+
+                    const allPrices = sellEntity.attributes.today_prices;
+                    const highestPrice = Math.max(...allPrices.map(p => p.price));
+                    return `${highestPrice.toFixed(2)} PLN/kWh`;
+                  ]]]
+                icon: mdi:arrow-up-bold
+                show_label: true
+                styles:
+                  card:
+                    - background: rgba(76, 175, 80, 0.1)
+                    - border: '2px solid #4CAF50'
+                    - border-radius: 12px
+                    - padding: 12px
+                    - height: 80px
+                  icon:
+                    - color: '#4CAF50'
+                    - width: 24px
+                  name:
+                    - font-size: 14px
+                    - color: var(--secondary-text-color)
+                  label:
+                    - font-size: 18px
+                    - font-weight: bold
+                    - color: '#4CAF50'
+              - type: custom:button-card
+                name: Średnia Cena Sprzedaży
+                label: |
+                  [[[
+                    const sellEntity = states['sensor.pstryk_aio_obecna_cena_sprzedazy_pradu'];
+                    if (sellEntity && sellEntity.attributes.average_price_today !== undefined) {
+                      // Używamy parseFloat, aby upewnić się, że pracujemy na liczbie przed toFixed()
+                      const avgPrice = parseFloat(sellEntity.attributes.average_price_today);
+                      return `${avgPrice.toFixed(2)} PLN/kWh`;
+                    }
+                    return 'No data';
+                  ]]]
+                icon: mdi:chart-line-variant
+                show_label: true
+                styles:
+                  card:
+                    - background: rgba(33, 150, 243, 0.1)
+                    - border: '2px solid #2196F3'
+                    - border-radius: 12px
+                    - padding: 12px
+                    - height: 80px
+                  icon:
+                    - color: '#2196F3'
+                    - width: 24px
+                  name:
+                    - font-size: 14px
+                    - color: var(--secondary-text-color)
+                  label:
+                    - font-size: 18px
+                    - font-weight: bold
+                    - color: '#2196F3'
+          - type: custom:button-card
+            name: Najlepsze ceny sprzedaży
+            show_name: false
+            show_icon: false
+            styles:
+              card:
+                - background: rgba(76, 175, 80, 0.1)
+                - border: '2px solid #4CAF50'
+                - border-radius: 16px
+                - padding: 10px
+                - box-shadow: var(--ha-card-box-shadow)
+                - box-sizing: border-box
+              grid:
+                - grid-template-areas: '''prices'''
+                - grid-template-columns: 1fr
+                - grid-template-rows: auto
+            custom_fields:
+              prices: |
+                [[[
+                  const sellEntity = states['sensor.pstryk_aio_obecna_cena_sprzedazy_pradu'];
+                  if (!sellEntity || !sellEntity.attributes.today_prices || sellEntity.attributes.today_prices.length === 0) {
+                    return '<div style="text-align: center; color: var(--secondary-text-color); width: 100%; box-sizing: border-box; padding: 10px;">Brak danych o cenach.</div>';
+                  }
+
+                  const allPricesToday = sellEntity.attributes.today_prices;
+                  let rangeSummaryHtml = '';
+                  
+                  let pricesForDetailedList;
+                  const expensiveHours = allPricesToday.filter(p => p.is_expensive === true);
+
+                  if (expensiveHours.length > 0) {
+                    pricesForDetailedList = [...expensiveHours].sort((a, b) => new Date(a.start) - new Date(b.start));
+                  } else if (allPricesToday.length > 0) {
+                    pricesForDetailedList = [...allPricesToday]
+                      .sort((a, b) => b.price - a.price)
+                      .slice(0, 5)
+                      .sort((a, b) => new Date(a.start) - new Date(b.start));
+                  } else {
+                    pricesForDetailedList = [];
+                  }
+
+                  if (expensiveHours.length > 0) {
+                    const sortedExpensiveHours = [...expensiveHours].sort((a, b) => new Date(a.start) - new Date(b.start));
+                    
+                    const ranges = [];
+                    if (sortedExpensiveHours.length > 0) {
+                        let currentRangeStart = new Date(sortedExpensiveHours[0].start);
+                        let currentRangeEnd = new Date(sortedExpensiveHours[0].end);
+
+                        for (let i = 1; i < sortedExpensiveHours.length; i++) {
+                          const nextHourStart = new Date(sortedExpensiveHours[i].start);
+                          const nextHourEnd = new Date(sortedExpensiveHours[i].end);
+                          
+                          if (nextHourStart.getTime() === currentRangeEnd.getTime()) {
+                            currentRangeEnd = nextHourEnd;
+                          } else {
+                            ranges.push({ start: currentRangeStart, end: currentRangeEnd });
+                            currentRangeStart = nextHourStart;
+                            currentRangeEnd = nextHourEnd;
+                          }
+                        }
+                        ranges.push({ start: currentRangeStart, end: currentRangeEnd });
+                    }
+
+                    const individualRangeHtmlElements = ranges.map(r => {
+                      const sH = r.start.getHours().toString().padStart(2, '0');
+                      const sM = r.start.getMinutes().toString().padStart(2, '0');
+                      const eH = r.end.getHours().toString().padStart(2, '0');
+                      const eM = r.end.getMinutes().toString().padStart(2, '0');
+                      const rangeText = `${sH}:${sM}-${eH}:${eM}`;
+                      return `<div style="background-color: rgba(255, 255, 255, 0.9); color: #4CAF50; padding: 5px 15px; border-radius: 999px; font-weight: bold; font-size: 18px; border: 0px; margin: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                                ${rangeText}
+                              </div>`;
+                    }).join('');
+
+                    rangeSummaryHtml = `
+                      <div style="font-size: 20px; color: var(--primary-text-color); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed var(--divider-color); text-align: center; width: 100%; box-sizing: border-box;">
+                        💰 Najdroższe godziny sprzedaży dziś 💰
+                        <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; margin-top: 10px;">
+                          ${individualRangeHtmlElements}
+                        </div>
+                      </div>`;
+                  } else {
+                    if (pricesForDetailedList.length > 0) {
+                        const rangesFromHighestPrices = [];
+                        let currentRangeStart = new Date(pricesForDetailedList[0].start);
+                        let currentRangeEnd = new Date(pricesForDetailedList[0].end);
+
+                        for (let i = 1; i < pricesForDetailedList.length; i++) {
+                          const nextHourStart = new Date(pricesForDetailedList[i].start);
+                          const nextHourEnd = new Date(pricesForDetailedList[i].end);
+                          
+                          if (nextHourStart.getTime() === currentRangeEnd.getTime()) {
+                            currentRangeEnd = nextHourEnd;
+                          } else {
+                            rangesFromHighestPrices.push({ start: currentRangeStart, end: currentRangeEnd });
+                            currentRangeStart = nextHourStart;
+                            currentRangeEnd = nextHourEnd;
+                          }
+                        }
+                        rangesFromHighestPrices.push({ start: currentRangeStart, end: currentRangeEnd });
+
+                        const topPricesPillsHtml = rangesFromHighestPrices.map(r => {
+                            const sH = r.start.getHours().toString().padStart(2, '0');
+                            const sM = r.start.getMinutes().toString().padStart(2, '0');
+                            const eH = r.end.getHours().toString().padStart(2, '0');
+                            const eM = r.end.getMinutes().toString().padStart(2, '0');
+                            const rangeText = `${sH}:${sM}-${eH}:${eM}`;
+                            return `<div style="background-color: rgba(255, 255, 255, 0.9); color: #4CAF50; padding: 5px 15px; border-radius: 999px; font-weight: bold; font-size: 18px; border: 0px; margin: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                                      ${rangeText}
+                                    </div>`;
+                        }).join('');
+
+                        rangeSummaryHtml = `
+                          <div style="font-size: 18px; color: var(--primary-text-color); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed var(--divider-color); text-align: center; width: 100%; box-sizing: border-box;">
+                            Brak godzin oznaczonych jako drogie.
+                            <br>💰 Poniżej 5 najlepszych godziny sprzedaży dziś 💰
+                            <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; margin-top: 10px;">
+                              ${topPricesPillsHtml}
+                            </div>
+                          </div>`;
+                    } else {
+                        rangeSummaryHtml = `<div style="font-size: 18px; color: var(--primary-text-color); margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px dashed var(--divider-color); text-align: center; width: 100%; box-sizing: border-box;">Brak danych o cenach do wyświetlenia.</div>`;
+                    }
+                  }
+
+                  let priceListDetailedHtml = '';
+                  if (pricesForDetailedList.length > 0) {
+                    priceListDetailedHtml = pricesForDetailedList.map(p => {
+                      const start = new Date(p.start);
+                      const end = new Date(p.end); 
+                      const sH = start.getHours().toString().padStart(2, '0');
+                      const sM = start.getMinutes().toString().padStart(2, '0');
+                      const eH = end.getHours().toString().padStart(2, '0');
+                      const eM = end.getMinutes().toString().padStart(2, '0');
+                      const timeRangeDisplay = `${sH}:${sM}-${eH}:${eM}`;
+                      
+                      return `<div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px solid var(--divider-color); width: 100%; box-sizing: border-box;">
+                                <span style="color: #4CAF50; flex-shrink: 0; margin-right: 8px;">💸 ${timeRangeDisplay}</span>
+                                <span style="font-weight: 500; color: var(--primary-text-color); text-align: right; flex-grow: 1;">${p.price.toFixed(2)} PLN/kWh</span>
+                              </div>`;
+                    }).join('');
+                  } else if (allPricesToday.length > 0) {
+                    priceListDetailedHtml = '<div style="text-align: center; color: var(--secondary-text-color); width: 100%; box-sizing: border-box; padding: 5px 0;">Brak odpowiednich cen do wyświetlenia na liście.</div>';
+                  }
+
+                  return rangeSummaryHtml + priceListDetailedHtml;
+                ]]]
+          - type: custom:button-card
+            name: Najlepsze ceny sprzedaży - Jutro
+            show_name: false
+            show_icon: false
+            styles:
+              card:
+                - background: rgba(76, 175, 80, 0.1)
+                - border: '2px solid #4CAF50'
+                - border-radius: 16px
+                - padding: 10px
+                - box-shadow: var(--ha-card-box-shadow)
+                - box-sizing: border-box
+              grid:
+                - grid-template-areas: '''prices'''
+                - grid-template-columns: 1fr
+                - grid-template-rows: auto
+            custom_fields:
+              prices: |
+                [[[
+                  // 1. Zmieniona encja na ceny jutrzejsze
+                  const sellEntity = states['sensor.pstryk_aio_cena_sprzedazy_pradu_jutro']; 
+                  
+                  // 2. WAŻNE: Założenie, że atrybut z cenami na jutro nazywa się 'tomorrow_prices'.
+                  //    Jeśli Twoja encja 'sensor.pstryk_aio_cena_sprzedazy_pradu_jutro'
+                  //    używa innej nazwy atrybutu dla cen jutrzejszych (np. 'attributes.prices_tomorrow'),
+                  //    musisz zaktualizować poniższe odwołania 'sellEntity.attributes.tomorrow_prices'.
+                  if (!sellEntity || !sellEntity.attributes.tomorrow_prices || sellEntity.attributes.tomorrow_prices.length === 0) {
+                    return '<div style="text-align: center; color: var(--secondary-text-color); width: 100%; box-sizing: border-box; padding: 10px;">Brak danych o cenach na jutro.</div>';
+                  }
+
+                  // Zmieniona nazwa zmiennej i atrybutu
+                  const allPricesTomorrow = sellEntity.attributes.tomorrow_prices; 
+                  let rangeSummaryHtml = '';
+                  
+                  let pricesForDetailedList;
+                  // Zakładamy, że struktura 'is_expensive' jest obecna i poprawna dla danych jutrzejszych
+                  const expensiveHours = allPricesTomorrow.filter(p => p.is_expensive === true);
+
+                  if (expensiveHours.length > 0) {
+                    pricesForDetailedList = [...expensiveHours].sort((a, b) => new Date(a.start) - new Date(b.start));
+                  } else if (allPricesTomorrow.length > 0) {
+                    pricesForDetailedList = [...allPricesTomorrow]
+                      .sort((a, b) => b.price - a.price) // Sortuj malejąco po cenie
+                      .slice(0, 5) // Weź 5 najdroższych
+                      .sort((a, b) => new Date(a.start) - new Date(b.start)); // Posortuj chronologicznie
+                  } else {
+                    pricesForDetailedList = [];
+                  }
+
+                  if (expensiveHours.length > 0) {
+                    const sortedExpensiveHours = [...expensiveHours].sort((a, b) => new Date(a.start) - new Date(b.start));
+                    
+                    const ranges = [];
+                    if (sortedExpensiveHours.length > 0) {
+                        let currentRangeStart = new Date(sortedExpensiveHours[0].start);
+                        let currentRangeEnd = new Date(sortedExpensiveHours[0].end);
+
+                        for (let i = 1; i < sortedExpensiveHours.length; i++) {
+                            const nextHourStart = new Date(sortedExpensiveHours[i].start);
+                            const nextHourEnd = new Date(sortedExpensiveHours[i].end);
+                            
+                            if (nextHourStart.getTime() === currentRangeEnd.getTime()) {
+                                currentRangeEnd = nextHourEnd;
+                            } else {
+                                ranges.push({ start: currentRangeStart, end: currentRangeEnd });
+                                currentRangeStart = nextHourStart;
+                                currentRangeEnd = nextHourEnd;
+                            }
+                        }
+                        ranges.push({ start: currentRangeStart, end: currentRangeEnd });
+                    }
+
+                    const individualRangeHtmlElements = ranges.map(r => {
+                      const sH = r.start.getHours().toString().padStart(2, '0');
+                      const sM = r.start.getMinutes().toString().padStart(2, '0');
+                      const eH = r.end.getHours().toString().padStart(2, '0');
+                      const eM = r.end.getMinutes().toString().padStart(2, '0');
+                      const rangeText = `${sH}:${sM}-${eH}:${eM}`;
+                      return `<div style="background-color: rgba(255, 255, 255, 0.9); color: #4CAF50; padding: 5px 15px; border-radius: 999px; font-weight: bold; font-size: 18px; border: 0px; margin: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                                ${rangeText}
+                              </div>`;
+                    }).join('');
+
+                    rangeSummaryHtml = `
+                      <div style="font-size: 20px; color: var(--primary-text-color); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed var(--divider-color); text-align: center; width: 100%; box-sizing: border-box;">
+                        💰 Najdroższe godziny sprzedaży jutro 💰 <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; margin-top: 10px;">
+                          ${individualRangeHtmlElements}
+                        </div>
+                      </div>`;
+                  } else {
+                    if (pricesForDetailedList.length > 0) {
+                        const topPricesPillsHtml = pricesForDetailedList.map(p => {
+                            const start = new Date(p.start);
+                            const end = new Date(p.end);
+                            const sH = start.getHours().toString().padStart(2, '0');
+                            const sM = start.getMinutes().toString().padStart(2, '0');
+                            const eH = end.getHours().toString().padStart(2, '0');
+                            const eM = end.getMinutes().toString().padStart(2, '0');
+                            const rangeText = `${sH}:${sM}-${eH}:${eM}`;
+                            return `<div style="background-color: rgba(255, 255, 255, 0.9); color: #4CAF50; padding: 5px 15px; border-radius: 999px; font-weight: bold; font-size: 18px; border: 0px; margin: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                                        ${rangeText}
+                                      </div>`;
+                        }).join('');
+
+                        rangeSummaryHtml = `
+                          <div style="font-size: 18px; color: var(--primary-text-color); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed var(--divider-color); text-align: center; width: 100%; box-sizing: border-box;">
+                            Brak godzin oznaczonych jako drogie na jutro. <br>Poniżej 5 najwyższych cen jutro (w kolejności chronologicznej): <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; margin-top: 10px;">
+                              ${topPricesPillsHtml}
+                            </div>
+                          </div>`;
+                    } else {
+                        rangeSummaryHtml = `<div style="font-size: 18px; color: var(--primary-text-color); margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px dashed var(--divider-color); text-align: center; width: 100%; box-sizing: border-box;">Brak danych o cenach na jutro do wyświetlenia.</div>`; // 3. ZMIENIONY TEKST
+                    }
+                  }
+
+                  let priceListDetailedHtml = '';
+                  if (pricesForDetailedList.length > 0) {
+                    priceListDetailedHtml = pricesForDetailedList.map(p => {
+                      const start = new Date(p.start);
+                      const end = new Date(p.end); 
+                      const sH = start.getHours().toString().padStart(2, '0');
+                      const sM = start.getMinutes().toString().padStart(2, '0');
+                      const eH = end.getHours().toString().padStart(2, '0');
+                      const eM = end.getMinutes().toString().padStart(2, '0');
+                      const timeRangeDisplay = `${sH}:${sM}-${eH}:${eM}`;
+                      
+                      return `<div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px solid var(--divider-color); width: 100%; box-sizing: border-box;">
+                                <span style="color: #4CAF50; flex-shrink: 0; margin-right: 8px;">💸 ${timeRangeDisplay}</span>
+                                <span style="font-weight: 500; color: var(--primary-text-color); text-align: right; flex-grow: 1;">${p.price.toFixed(2)} PLN/kWh</span>
+                              </div>`;
+                    }).join('');
+                  } else if (allPricesTomorrow.length > 0) {
+                    priceListDetailedHtml = '<div style="text-align: center; color: var(--secondary-text-color); width: 100%; box-sizing: border-box; padding: 5px 0;">Brak odpowiednich cen na jutro do wyświetlenia na liście.</div>'; // 3. ZMIENIONY TEKST
+                  }
+
+                  return rangeSummaryHtml + priceListDetailedHtml;
+                ]]]
+        column_span: 1
+      - type: grid
+        cards:
+          - type: heading
+            icon: mdi:transmission-tower-import
+            heading: Zakup
+            heading_style: title
+          - type: gauge
+            name: Cena Zakupu Prądu
+            entity: sensor.pstryk_aio_obecna_cena_zakupu_pradu
+            min: 0
+            max: 1.5
+            unit: PLN/kWh
+            severity:
+              green: 0
+              yellow: 0.5
+              red: 1
+            needle: true
+          - type: custom:button-card
+            name: |
+              [[[
+                const purchaseEntity = states['sensor.pstryk_aio_obecna_cena_zakupu_pradu'];
+                if (!purchaseEntity || !purchaseEntity.attributes.today_prices || purchaseEntity.attributes.today_prices.length === 0) {
+                  return 'Cena (następna godz.): N/A';
+                }
+
+                const prices = purchaseEntity.attributes.today_prices;
+                const now = new Date(); // Aktualny czas
+                
+                // Ustalenie początku następnej pełnej godziny
+                const nextHourStart = new Date(now);
+                // Jeśli jest np. 16:54, chcemy 17:00. Jeśli jest 17:00, chcemy 18:00.
+                if (now.getMinutes() === 0 && now.getSeconds() === 0 && now.getMilliseconds() === 0) {
+                  // Jeśli jest dokładnie pełna godzina, bierzemy godzinę + 1
+                  nextHourStart.setHours(now.getHours() + 1, 0, 0, 0);
+                } else {
+                  // W przeciwnym razie, bierzemy początek następnej godziny po obecnej
+                  nextHourStart.setHours(now.getHours() + 1, 0, 0, 0); 
+                  // To samo co wyżej, ale dla jasności: jeśli jest 16:xx, to nextHourStart to 17:00.
+                  // Jeśli chcemy cenę dla godziny, która właśnie się rozpocznie, gdy jest np. 16:59
+                  // a chcemy cenę dla 17:00, to ta logika jest poprawna.
+                  // Wymóg był "jak teraz jest 16:49 to ma pokazywać cenę z 17:00 a jak jest 17:00 to ma pokazywać z 18:00."
+                  // Więc jeśli jest dokładnie 17:00, to nextHourStart będzie 18:00.
+                  // Jeśli jest 16:59, nextHourStart będzie 17:00.
+                  // Zatem, jeśli jest 16:49, now.getHours() = 16. nextHourStart ustawi na 17:00. Szukamy wpisu na 17:00.
+                  // Jeśli jest 17:00, now.getHours() = 17. nextHourStart ustawi na 18:00. Szukamy wpisu na 18:00.
+                  // To jest zgodne z wymogiem.
+                }
+                
+                let nextPriceEntry = null;
+                for (const priceEntry of prices) {
+                  const entryStartDate = new Date(priceEntry.start);
+                  if (entryStartDate.getTime() === nextHourStart.getTime()) {
+                    nextPriceEntry = priceEntry;
+                    break;
+                  }
+                }
+                
+                // Fallback, jeśli nie znaleziono dla dokładnie następnej godziny
+                if (!nextPriceEntry) {
+                    const nowTime = now.getTime();
+                    let foundFuturePrice = null;
+                    // Przeglądamy ceny, aby znaleźć pierwszą, której czas startu jest po obecnym czasie `now`
+                    // i jest to pełna godzina.
+                    for (const priceEntry of prices) {
+                        const entryStartDate = new Date(priceEntry.start);
+                        if (entryStartDate.getTime() > nowTime && 
+                            entryStartDate.getMinutes() === 0 && 
+                            entryStartDate.getSeconds() === 0 && 
+                            entryStartDate.getMilliseconds() === 0) {
+                            foundFuturePrice = priceEntry;
+                            break; 
+                        }
+                    }
+                    if (foundFuturePrice) {
+                        nextPriceEntry = foundFuturePrice;
+                    }
+                }
+
+                if (nextPriceEntry) {
+                  const hour = new Date(nextPriceEntry.start).getHours().toString().padStart(2, '0');
+                  return `Cena w nast. godz. od ${hour}:00`;
+                } else {
+                  return 'Cena w nast. godz.: N/A';
+                }
+              ]]]
+            label: |
+              [[[
+                const purchaseEntity = states['sensor.pstryk_aio_obecna_cena_zakupu_pradu'];
+                if (!purchaseEntity || !purchaseEntity.attributes.today_prices || purchaseEntity.attributes.today_prices.length === 0) {
+                  return 'N/A';
+                }
+
+                const prices = purchaseEntity.attributes.today_prices;
+                const now = new Date();
+                const nextHourStart = new Date(now);
+                if (now.getMinutes() === 0 && now.getSeconds() === 0 && now.getMilliseconds() === 0) {
+                  nextHourStart.setHours(now.getHours() + 1, 0, 0, 0);
+                } else {
+                  nextHourStart.setHours(now.getHours() + 1, 0, 0, 0);
+                }
+
+                let nextPriceEntry = null;
+                for (const priceEntry of prices) {
+                  const entryStartDate = new Date(priceEntry.start);
+                  if (entryStartDate.getTime() === nextHourStart.getTime()) {
+                    nextPriceEntry = priceEntry;
+                    break;
+                  }
+                }
+                
+                if (!nextPriceEntry) {
+                    const nowTime = now.getTime();
+                    let foundFuturePrice = null;
+                    for (const priceEntry of prices) {
+                        const entryStartDate = new Date(priceEntry.start);
+                        if (entryStartDate.getTime() > nowTime &&
+                            entryStartDate.getMinutes() === 0 && 
+                            entryStartDate.getSeconds() === 0 && 
+                            entryStartDate.getMilliseconds() === 0) {
+                            foundFuturePrice = priceEntry;
+                            break; 
+                        }
+                    }
+                    if (foundFuturePrice) {
+                        nextPriceEntry = foundFuturePrice;
+                    }
+                }
+
+                if (nextPriceEntry) {
+                  return `${parseFloat(nextPriceEntry.price).toFixed(2)} PLN/kWh`;
+                } else {
+                  return 'N/A';
+                }
+              ]]]
+            icon: mdi:cart-arrow-down
+            show_label: true
+            styles:
+              card:
+                - background: rgba(128, 128, 128, 0.1)
+                - border: 2px solid var(--primary-text-color)
+                - border-radius: 12px
+                - padding: 12px
+                - height: 80px
+              icon:
+                - color: var(--primary-text-color)
+                - width: 24px
+              name:
+                - font-size: 14px
+                - color: var(--secondary-text-color)
+              label:
+                - font-size: 18px
+                - font-weight: bold
+                - color: rgb(var(--rgb-blue-color))
+          - type: horizontal-stack
+            cards:
+              - type: custom:button-card
+                name: |
+                  [[[
+                    const buyEntity = states['sensor.pstryk_aio_obecna_cena_zakupu_pradu'];
+                    if (!buyEntity || !buyEntity.attributes.today_prices || buyEntity.attributes.today_prices.length === 0) return 'Best Buy: N/A';
+
+                    const allPrices = buyEntity.attributes.today_prices;
+                    const lowestPrice = Math.min(...allPrices.map(p => p.price));
+                    const bestTime = allPrices.find(p => p.price === lowestPrice);
+
+                    if (bestTime) {
+                      const hour = new Date(bestTime.start).getHours().toString().padStart(2, '0');
+                      return `Najlepszy zakup: ${hour}:00`;
+                    }
+                    return 'Najlepszy zakup: N/A';
+                  ]]]
+                label: |
+                  [[[
+                    const buyEntity = states['sensor.pstryk_aio_obecna_cena_zakupu_pradu'];
+                    if (!buyEntity || !buyEntity.attributes.today_prices || buyEntity.attributes.today_prices.length === 0) return 'No data';
+
+                    const allPrices = buyEntity.attributes.today_prices;
+                    const lowestPrice = Math.min(...allPrices.map(p => p.price));
+
+                    return `${lowestPrice.toFixed(2)} PLN/kWh`;
+                  ]]]
+                icon: mdi:arrow-down-bold
+                show_label: true
+                styles:
+                  card:
+                    - background: rgba(255, 152, 0, 0.1)
+                    - border: '2px solid #FF9800'
+                    - border-radius: 12px
+                    - padding: 12px
+                    - height: 80px
+                  icon:
+                    - color: '#FF9800'
+                    - width: 24px
+                  name:
+                    - font-size: 14px
+                    - color: var(--secondary-text-color)
+                  label:
+                    - font-size: 18px
+                    - font-weight: bold
+                    - color: '#FF9800'
+              - type: custom:button-card
+                name: Średnia Cena Zakupu
+                label: |
+                  [[[
+                    const buyEntity = states['sensor.pstryk_aio_obecna_cena_zakupu_pradu'];
+                    // Sprawdzamy, czy encja i atrybut average_price_today istnieją
+                    if (buyEntity && buyEntity.attributes.average_price_today !== undefined) {
+                      const avgPrice = parseFloat(buyEntity.attributes.average_price_today);
+                      return `${avgPrice.toFixed(2)} PLN/kWh`;
+                    }
+                    // Jeśli atrybutu nie ma, próbujemy obliczyć średnią ręcznie
+                    else if (buyEntity && buyEntity.attributes.today_prices && buyEntity.attributes.today_prices.length > 0) {
+                      const prices = buyEntity.attributes.today_prices.map(p => p.price);
+                      const sum = prices.reduce((a, b) => a + b, 0);
+                      const avgPrice = sum / prices.length;
+                      return `${avgPrice.toFixed(2)} PLN/kWh (oblicz.)`; // Dodano (oblicz.) dla jasności
+                    }
+                    return 'No data';
+                  ]]]
+                icon: mdi:chart-bell-curve-cumulative
+                show_label: true
+                styles:
+                  card:
+                    - background: rgba(255, 152, 0, 0.05)
+                    - border: '2px solid #FB8C00'
+                    - border-radius: 12px
+                    - padding: 12px
+                    - height: 80px
+                  icon:
+                    - color: '#FB8C00'
+                    - width: 24px
+                  name:
+                    - font-size: 14px
+                    - color: var(--secondary-text-color)
+                  label:
+                    - font-size: 18px
+                    - font-weight: bold
+                    - color: '#FB8C00'
+          - type: custom:button-card
+            show_name: false
+            show_icon: false
+            styles:
+              card:
+                - background: rgba(255, 152, 0, 0.1)
+                - border: '2px solid #FF9800'
+                - border-radius: 16px
+                - padding: 10px
+                - box-shadow: var(--ha-card-box-shadow)
+                - box-sizing: border-box
+              grid:
+                - grid-template-areas: '''prices'''
+                - grid-template-columns: 1fr
+                - grid-template-rows: auto
+            custom_fields:
+              prices: |
+                [[[
+                  const buyEntity = states['sensor.pstryk_aio_obecna_cena_zakupu_pradu'];
+                  if (!buyEntity || !buyEntity.attributes.today_prices || buyEntity.attributes.today_prices.length === 0) {
+                    return '<div style="text-align: center; color: var(--secondary-text-color); width: 100%; box-sizing: border-box; padding: 10px;">Brak danych o cenach.</div>';
+                  }
+
+                  const allPricesToday = buyEntity.attributes.today_prices;
+                  let rangeSummaryHtml = '';
+                  
+                  let pricesForDetailedList;
+                  const cheapHours = allPricesToday.filter(p => p.is_cheap === true);
+
+                  if (cheapHours.length > 0) {
+                    pricesForDetailedList = [...cheapHours].sort((a, b) => new Date(a.start) - new Date(b.start));
+                  } else if (allPricesToday.length > 0) {
+                    pricesForDetailedList = [...allPricesToday]
+                      .sort((a, b) => a.price - b.price)
+                      .slice(0, 5)
+                      .sort((a, b) => new Date(a.start) - new Date(b.start));
+                  } else {
+                    pricesForDetailedList = [];
+                  }
+
+                  if (cheapHours.length > 0) {
+                    const sortedCheapHoursForRanges = [...cheapHours].sort((a, b) => new Date(a.start) - new Date(b.start));
+                    
+                    const ranges = [];
+                    if (sortedCheapHoursForRanges.length > 0) {
+                        let currentRangeStart = new Date(sortedCheapHoursForRanges[0].start);
+                        let currentRangeEnd = new Date(sortedCheapHoursForRanges[0].end);
+
+                        for (let i = 1; i < sortedCheapHoursForRanges.length; i++) {
+                          const nextHourStart = new Date(sortedCheapHoursForRanges[i].start);
+                          const nextHourEnd = new Date(sortedCheapHoursForRanges[i].end);
+                          
+                          if (nextHourStart.getTime() === currentRangeEnd.getTime()) {
+                            currentRangeEnd = nextHourEnd;
+                          } else {
+                            ranges.push({ start: currentRangeStart, end: currentRangeEnd });
+                            currentRangeStart = nextHourStart;
+                            currentRangeEnd = nextHourEnd;
+                          }
+                        }
+                        ranges.push({ start: currentRangeStart, end: currentRangeEnd });
+                    }
+
+                    const individualRangeHtmlElements = ranges.map(r => {
+                      const sH = r.start.getHours().toString().padStart(2, '0');
+                      const sM = r.start.getMinutes().toString().padStart(2, '0');
+                      const eH = r.end.getHours().toString().padStart(2, '0');
+                      const eM = r.end.getMinutes().toString().padStart(2, '0');
+                      const rangeText = `${sH}:${sM}-${eH}:${eM}`;
+                      return `<div style="background-color: rgba(0, 0, 0, 0.5); color: #FF9800; padding: 5px 15px; border-radius: 999px; font-weight: bold; font-size: 18px; border: 0px; margin: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                                ${rangeText}
+                              </div>`;
+                    }).join('');
+
+                    rangeSummaryHtml = `
+                      <div style="font-size: 20px; color: var(--primary-text-color); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed var(--divider-color); text-align: center; width: 100%; box-sizing: border-box;">
+                        ⚡️ Najtańsze godziny zakupu dziś ⚡️
+                        <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; margin-top: 10px;">
+                          ${individualRangeHtmlElements}
+                        </div>
+                      </div>`;
+                  } else { // Nie ma godzin "is_cheap", używamy pricesForDetailedList (5 najtańszych)
+                    if (pricesForDetailedList.length > 0) {
+                        const rangesFromLowestPrices = []; // Tutaj będą połączone zakresy z 5 najtańszych
+                        // pricesForDetailedList jest już posortowane chronologicznie
+                        let currentRangeStart = new Date(pricesForDetailedList[0].start);
+                        let currentRangeEnd = new Date(pricesForDetailedList[0].end);
+
+                        for (let i = 1; i < pricesForDetailedList.length; i++) {
+                          const nextHourStart = new Date(pricesForDetailedList[i].start);
+                          const nextHourEnd = new Date(pricesForDetailedList[i].end);
+                          
+                          if (nextHourStart.getTime() === currentRangeEnd.getTime()) {
+                            currentRangeEnd = nextHourEnd;
+                          } else {
+                            rangesFromLowestPrices.push({ start: currentRangeStart, end: currentRangeEnd });
+                            currentRangeStart = nextHourStart;
+                            currentRangeEnd = nextHourEnd;
+                          }
+                        }
+                        rangesFromLowestPrices.push({ start: currentRangeStart, end: currentRangeEnd });
+
+                        const lowestPricesPillsHtml = rangesFromLowestPrices.map(r => {
+                            const sH = r.start.getHours().toString().padStart(2, '0');
+                            const sM = r.start.getMinutes().toString().padStart(2, '0');
+                            const eH = r.end.getHours().toString().padStart(2, '0');
+                            const eM = r.end.getMinutes().toString().padStart(2, '0');
+                            const rangeText = `${sH}:${sM}-${eH}:${eM}`;
+                            return `<div style="background-color: rgba(0, 0, 0, 0.5); color: #FF9800; padding: 5px 15px; border-radius: 999px; font-weight: bold; font-size: 18px; border: 0px; margin: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                                      ${rangeText}
+                                    </div>`;
+                        }).join('');
+
+                        rangeSummaryHtml = `
+                          <div style="font-size: 18px; color: var(--primary-text-color); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed var(--divider-color); text-align: center; width: 100%; box-sizing: border-box;">
+                            Brak godzin oznaczonych jako tanie.
+                            <br>Poniżej 5 najtańszych cen dziś:
+                            <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; margin-top: 10px;">
+                              ${lowestPricesPillsHtml}
+                            </div>
+                          </div>`;
+                    } else {
+                        rangeSummaryHtml = `<div style="font-size: 18px; color: var(--primary-text-color); margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px dashed var(--divider-color); text-align: center; width: 100%; box-sizing: border-box;">Brak danych o cenach do wyświetlenia.</div>`;
+                    }
+                  }
+
+                  let priceListDetailedHtml = '';
+                  if (pricesForDetailedList.length > 0) {
+                    priceListDetailedHtml = pricesForDetailedList.map(p => {
+                      const start = new Date(p.start);
+                      const end = new Date(p.end); 
+                      const sH = start.getHours().toString().padStart(2, '0');
+                      const sM = start.getMinutes().toString().padStart(2, '0');
+                      const eH = end.getHours().toString().padStart(2, '0');
+                      const eM = end.getMinutes().toString().padStart(2, '0');
+                      const timeRangeDisplay = `${sH}:${sM}-${eH}:${eM}`;
+                      
+                      return `<div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px solid var(--divider-color); width: 100%; box-sizing: border-box;">
+                                <span style="color: #FF9800; flex-shrink: 0; margin-right: 8px;">⚡️ ${timeRangeDisplay}</span>
+                                <span style="font-weight: 500; color: var(--primary-text-color); text-align: right; flex-grow: 1;">${p.price.toFixed(2)} PLN/kWh</span>
+                              </div>`;
+                    }).join('');
+                  } else if (allPricesToday.length > 0) {
+                    priceListDetailedHtml = '<div style="text-align: center; color: var(--secondary-text-color); width: 100%; box-sizing: border-box; padding: 5px 0;">Brak odpowiednich cen do wyświetlenia na liście.</div>';
+                  }
+
+                  return rangeSummaryHtml + priceListDetailedHtml;
+                ]]]
+          - type: custom:mini-graph-card
+            name: Pstryk ceny prądu
+            entities:
+              - entity: sensor.pstryk_aio_current_purchase_price
+                name: Cena zakupu
+                show_state: true
+              - entity: sensor.pstryk_aio_current_sale_price
+                name: Cena sprzedaży
+                show_state: true
+            show:
+              graph: bar
+            hours_to_show: 24
+            points_per_hour: 1
+            group_by: hour
+          - type: custom:button-card
+            name: Najlepsze ceny zakupu - Jutro
+            show_name: false
+            show_icon: false
+            styles:
+              card:
+                - background: rgba(255, 152, 0, 0.1)
+                - border: '2px solid #FF9800'
+                - border-radius: 16px
+                - padding: 10px
+                - box-shadow: var(--ha-card-box-shadow)
+                - box-sizing: border-box
+              grid:
+                - grid-template-areas: '''prices'''
+                - grid-template-columns: 1fr
+                - grid-template-rows: auto
+            custom_fields:
+              prices: |
+                [[[
+                  // 1. Założona encja dla cen zakupu na jutro
+                  const buyEntity = states['sensor.pstryk_aio_cena_zakupu_pradu_jutro']; 
+                  
+                  // 2. WAŻNE: Założenie, że atrybut z cenami na jutro nazywa się 'tomorrow_prices'.
+                  //    Jeśli Twoja encja używa innej nazwy atrybutu dla cen jutrzejszych,
+                  //    musisz zaktualizować poniższe odwołania 'buyEntity.attributes.tomorrow_prices'.
+                  if (!buyEntity || !buyEntity.attributes.tomorrow_prices || buyEntity.attributes.tomorrow_prices.length === 0) {
+                    return '<div style="text-align: center; color: var(--secondary-text-color); width: 100%; box-sizing: border-box; padding: 10px;">Brak danych o cenach zakupu na jutro.</div>';
+                  }
+
+                  const allPricesTomorrow = buyEntity.attributes.tomorrow_prices; 
+                  let rangeSummaryHtml = '';
+                  
+                  let pricesForDetailedList;
+                  const cheapHours = allPricesTomorrow.filter(p => p.is_cheap === true);
+
+                  if (cheapHours.length > 0) {
+                    pricesForDetailedList = [...cheapHours].sort((a, b) => new Date(a.start) - new Date(b.start));
+                  } else if (allPricesTomorrow.length > 0) {
+                    pricesForDetailedList = [...allPricesTomorrow]
+                      .sort((a, b) => a.price - b.price) // Sortuj rosnąco po cenie (najtańsze)
+                      .slice(0, 5) // Weź 5 najtańszych
+                      .sort((a, b) => new Date(a.start) - new Date(b.start)); // Posortuj chronologicznie
+                  } else {
+                    pricesForDetailedList = [];
+                  }
+
+                  if (cheapHours.length > 0) {
+                    const sortedCheapHoursForRanges = [...cheapHours].sort((a, b) => new Date(a.start) - new Date(b.start));
+                    
+                    const ranges = [];
+                    if (sortedCheapHoursForRanges.length > 0) {
+                        let currentRangeStart = new Date(sortedCheapHoursForRanges[0].start);
+                        let currentRangeEnd = new Date(sortedCheapHoursForRanges[0].end);
+
+                        for (let i = 1; i < sortedCheapHoursForRanges.length; i++) {
+                            const nextHourStart = new Date(sortedCheapHoursForRanges[i].start);
+                            const nextHourEnd = new Date(sortedCheapHoursForRanges[i].end);
+                            
+                            if (nextHourStart.getTime() === currentRangeEnd.getTime()) {
+                                currentRangeEnd = nextHourEnd;
+                            } else {
+                                ranges.push({ start: currentRangeStart, end: currentRangeEnd });
+                                currentRangeStart = nextHourStart;
+                                currentRangeEnd = nextHourEnd;
+                            }
+                        }
+                        ranges.push({ start: currentRangeStart, end: currentRangeEnd });
+                    }
+
+                    const individualRangeHtmlElements = ranges.map(r => {
+                      const sH = r.start.getHours().toString().padStart(2, '0');
+                      const sM = r.start.getMinutes().toString().padStart(2, '0');
+                      const eH = r.end.getHours().toString().padStart(2, '0');
+                      const eM = r.end.getMinutes().toString().padStart(2, '0');
+                      const rangeText = `${sH}:${sM}-${eH}:${eM}`;
+                      return `<div style="background-color: rgba(0, 0, 0, 0.5); color: #FF9800; padding: 5px 15px; border-radius: 999px; font-weight: bold; font-size: 18px; border: 0px; margin: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                                ${rangeText}
+                              </div>`;
+                    }).join('');
+
+                    rangeSummaryHtml = `
+                      <div style="font-size: 20px; color: var(--primary-text-color); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed var(--divider-color); text-align: center; width: 100%; box-sizing: border-box;">
+                        ⚡️ Najtańsze godziny zakupu jutro ⚡️ <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; margin-top: 10px;">
+                          ${individualRangeHtmlElements}
+                        </div>
+                      </div>`;
+                  } else { // Nie ma godzin "is_cheap", używamy pricesForDetailedList (5 najtańszych)
+                    if (pricesForDetailedList.length > 0) {
+                        const rangesFromLowestPrices = [];
+                        let currentRangeStart = new Date(pricesForDetailedList[0].start);
+                        let currentRangeEnd = new Date(pricesForDetailedList[0].end);
+
+                        for (let i = 1; i < pricesForDetailedList.length; i++) {
+                            const nextHourStart = new Date(pricesForDetailedList[i].start);
+                            const nextHourEnd = new Date(pricesForDetailedList[i].end);
+                            
+                            if (nextHourStart.getTime() === currentRangeEnd.getTime()) {
+                                currentRangeEnd = nextHourEnd;
+                            } else {
+                                rangesFromLowestPrices.push({ start: currentRangeStart, end: currentRangeEnd });
+                                currentRangeStart = nextHourStart;
+                                currentRangeEnd = nextHourEnd;
+                            }
+                        }
+                        rangesFromLowestPrices.push({ start: currentRangeStart, end: currentRangeEnd });
+
+                        const lowestPricesPillsHtml = rangesFromLowestPrices.map(r => {
+                            const sH = r.start.getHours().toString().padStart(2, '0');
+                            const sM = r.start.getMinutes().toString().padStart(2, '0');
+                            const eH = r.end.getHours().toString().padStart(2, '0');
+                            const eM = r.end.getMinutes().toString().padStart(2, '0');
+                            const rangeText = `${sH}:${sM}-${eH}:${eM}`;
+                            return `<div style="background-color: rgba(0, 0, 0, 0.5); color: #FF9800; padding: 5px 15px; border-radius: 999px; font-weight: bold; font-size: 18px; border: 0px; margin: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                                        ${rangeText}
+                                      </div>`;
+                        }).join('');
+
+                        rangeSummaryHtml = `
+                          <div style="font-size: 18px; color: var(--primary-text-color); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed var(--divider-color); text-align: center; width: 100%; box-sizing: border-box;">
+                            Brak godzin oznaczonych jako tanie na jutro. <br>Poniżej 5 najtańszych cen jutro: <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; margin-top: 10px;">
+                              ${lowestPricesPillsHtml}
+                            </div>
+                          </div>`;
+                    } else {
+                        rangeSummaryHtml = `<div style="font-size: 18px; color: var(--primary-text-color); margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px dashed var(--divider-color); text-align: center; width: 100%; box-sizing: border-box;">Brak danych o cenach zakupu na jutro do wyświetlenia.</div>`; // 3. ZMIENIONY TEKST
+                    }
+                  }
+
+                  let priceListDetailedHtml = '';
+                  if (pricesForDetailedList.length > 0) {
+                    priceListDetailedHtml = pricesForDetailedList.map(p => {
+                      const start = new Date(p.start);
+                      const end = new Date(p.end); 
+                      const sH = start.getHours().toString().padStart(2, '0');
+                      const sM = start.getMinutes().toString().padStart(2, '0');
+                      const eH = end.getHours().toString().padStart(2, '0');
+                      const eM = end.getMinutes().toString().padStart(2, '0');
+                      const timeRangeDisplay = `${sH}:${sM}-${eH}:${eM}`;
+                      
+                      return `<div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px solid var(--divider-color); width: 100%; box-sizing: border-box;">
+                                <span style="color: #FF9800; flex-shrink: 0; margin-right: 8px;">⚡️ ${timeRangeDisplay}</span>
+                                <span style="font-weight: 500; color: var(--primary-text-color); text-align: right; flex-grow: 1;">${p.price.toFixed(2)} PLN/kWh</span>
+                              </div>`;
+                    }).join('');
+                  } else if (allPricesTomorrow.length > 0) {
+                    priceListDetailedHtml = '<div style="text-align: center; color: var(--secondary-text-color); width: 100%; box-sizing: border-box; padding: 5px 0;">Brak odpowiednich cen zakupu na jutro do wyświetlenia na liście.</div>'; // 3. ZMIENIONY TEKST
+                  }
+
+                  return rangeSummaryHtml + priceListDetailedHtml;
+                ]]]
+      - type: grid
+        cards:
+          - type: heading
+            icon: mdi:home-lightning-bolt-outline
+            heading: Podsumowanie
+            heading_style: title
+          - type: custom:apexcharts-card
+            experimental:
+              color_threshold: true
+            layout: minimal
+            stacked: true
+            header:
+              show: true
+              title: Pstryk ceny prądu
+              show_states: true
+              colorize_states: true
+            graph_span: 23h
+            span:
+              start: day
+            series:
+              - entity: sensor.pstryk_aio_obecna_cena_zakupu_pradu
+                name: Cena zakupu
+                type: column
+                color: '#187498'
+                float_precision: 2
+                show:
+                  legend_value: false
+                  in_header: before_now
+                data_generator: |
+                  EVAL:
+                    if (entity && entity.attributes && entity.attributes.today_prices) {
+                      const prices = entity.attributes.today_prices;
+                      const sortedPrices = prices.sort((a, b) => new Date(a.start) - new Date(b.start));
+                      return sortedPrices.map(item => {
+                        const timestamp = new Date(item.start).getTime();
+                        const price = parseFloat(item.price);
+                        return [timestamp, price];
+                      });
+                    }
+                    return [];
+                color_threshold:
+                  - value: 0
+                    color: 4CAF50
+                  - value: 0.5
+                    color: FFEB3B
+                  - value: 1
+                    color: FF9800
+                  - value: 1.5
+                    color: F44336
+              - entity: sensor.pstryk_aio_obecna_cena_sprzedazy_pradu
+                name: Cena sprzedaży
+                type: line
+                color: '#85A947'
+                stroke_width: 2
+                float_precision: 2
+                show:
+                  legend_value: false
+                  in_header: before_now
+                data_generator: |
+                  EVAL:
+                    if (entity && entity.attributes && entity.attributes.today_prices) {
+                      const prices = entity.attributes.today_prices;
+                      const sortedPrices = prices.sort((a, b) => new Date(a.start) - new Date(b.start));
+                      return sortedPrices.map(item => {
+                        const timestamp = new Date(item.start).getTime();
+                        const price = parseFloat(item.price);
+                        return [timestamp, price];
+                      });
+                    }
+                    return [];
+                color_threshold:
+                  - value: 0
+                    color: CB0404
+                  - value: 0.25
+                    color: FF9D23
+                  - value: 0.5
+                    color: E7FBB4
+                  - value: 0.75
+                    color: 85A947
+                  - value: 1
+                    color: 85A947
+                  - value: 1.5
+                    color: '123524'
+            apex_config:
+              chart:
+                height: 200px
+                zoom:
+                  enabled: true
+                  type: x
+                  autoScaleYaxis: true
+                pan:
+                  enabled: true
+                  type: x
+                toolbar:
+                  show: true
+                  tools:
+                    zoom: true
+                    zoomin: true
+                    zoomout: true
+                    pan: true
+                    reset: true
+              xaxis:
+                min: |
+                  EVAL:(() => {
+                    const now = new Date();
+                    const currentHourStart = new Date(now);
+                    currentHourStart.setMinutes(0, 0, 0);
+                    return currentHourStart.getTime() - (2 * 3600000); // 2 hours before
+                  })()
+                max: |
+                  EVAL:(() => {
+                    const now = new Date();
+                    const currentHourStart = new Date(now);
+                    currentHourStart.setMinutes(0, 0, 0);
+                    return currentHourStart.getTime() + (3 * 3600000); // 2 hours after + current hour
+                  })()
+              tooltip:
+                enabled: true
+                shared: true
+                intersect: false
+                x:
+                  format: HH:mm
+                'y':
+                  formatter: >
+                    EVAL:function(value, { series, seriesIndex, dataPointIndex,
+                    w }) {
+                      if (value === null || typeof value === 'undefined') return '';
+                      return value.toFixed(2) + ' zł';
+                    }
+              legend:
+                show: false
+              annotations:
+                xaxis:
+                  - x: |
+                      EVAL:(() => {
+                        const now = new Date();
+                        const currentHourStart = new Date(now);
+                        currentHourStart.setMinutes(0, 0, 0);
+                        const hourDuration = 3600000;
+                        const margin = hourDuration * -0.5;
+                        return currentHourStart.getTime() + margin;
+                      })()
+                    x2: |
+                      EVAL:(() => {
+                        const now = new Date();
+                        const currentHourStart = new Date(now);
+                        currentHourStart.setMinutes(0, 0, 0);
+                        const hourDuration = 3600000;
+                        const margin = hourDuration * 0.5; 
+                        return currentHourStart.getTime() + hourDuration - margin;
+                      })()
+                    fillColor: rgba(5, 30, 40, 0.6)
+                    borderWidth: 0
+          - type: vertical-stack
+            cards:
+              - type: horizontal-stack
+                cards:
+                  - type: custom:button-card
+                    name: Dziś
+                    icon: mdi:calendar-today
+                    layout: icon_name
+                    entity: input_select.statystyki_czas
+                    show_state: false
+                    show_name: true
+                    show_icon: true
+                    tap_action:
+                      action: call-service
+                      service: input_select.select_option
+                      service_data:
+                        entity_id: input_select.statystyki_czas
+                        option: Dziś
+                    styles:
+                      card:
+                        - flex: 1
+                        - margin: 10px 4px 0px 0px
+                        - border-radius: 25px
+                        - padding: 14px 20px
+                        - font-family: >-
+                            -apple-system, BlinkMacSystemFont, 'SF Pro Display',
+                            'Helvetica Neue', Arial, sans-serif
+                        - background: |
+                            [[[
+                              if (entity.state === 'Dziś') return 'rgba(0, 122, 255, 1)';
+                              return 'rgba(28, 28, 30, 0.6)';
+                            ]]]
+                        - box-shadow: |
+                            [[[
+                              if (entity.state === 'Dziś') return '0 8px 25px rgba(0, 122, 255, 0.35)';
+                              return '0 4px 15px rgba(0,0,0,0.1)';
+                            ]]]
+                        - backdrop-filter: blur(20px) saturate(180%)
+                        - transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)
+                      grid:
+                        - grid-template-areas: '''i n'''
+                        - grid-template-columns: min-content auto
+                        - justify-content: center
+                        - align-items: center
+                        - column-gap: 10px
+                      name:
+                        - font-family: >-
+                            -apple-system, BlinkMacSystemFont, 'SF Pro Display',
+                            'Helvetica Neue', Arial, sans-serif
+                        - font-weight: 600
+                        - font-size: 17px
+                        - letter-spacing: '-0.02em'
+                        - color: |
+                            [[[
+                              if (entity.state === 'Dziś') return 'white';
+                              return 'rgba(255,255,255,0.9)';
+                            ]]]
+                      icon:
+                        - width: 22px
+                        - height: 22px
+                        - color: |
+                            [[[
+                              if (entity.state === 'Dziś') return 'white';
+                              return 'rgba(255,255,255,0.7)';
+                            ]]]
+                  - type: custom:button-card
+                    name: Ten miesiąc
+                    icon: mdi:calendar-month
+                    layout: icon_name
+                    entity: input_select.statystyki_czas
+                    show_state: false
+                    show_name: true
+                    show_icon: true
+                    tap_action:
+                      action: call-service
+                      service: input_select.select_option
+                      service_data:
+                        entity_id: input_select.statystyki_czas
+                        option: Ten miesiąc
+                    styles:
+                      card:
+                        - flex: 1
+                        - margin: 10px 0px 0px 4px
+                        - padding: 14px 20px
+                        - border-radius: 25px
+                        - font-family: >-
+                            -apple-system, BlinkMacSystemFont, 'SF Pro Display',
+                            'Helvetica Neue', Arial, sans-serif
+                        - background: |
+                            [[[
+                              if (entity.state === 'Ten miesiąc') return 'rgba(0, 122, 255, 1)';
+                              return 'rgba(28, 28, 30, 0.6)';
+                            ]]]
+                        - box-shadow: |
+                            [[[
+                              if (entity.state === 'Ten miesiąc') return '0 8px 25px rgba(0, 122, 255, 0.35)';
+                              return '0 4px 15px rgba(0,0,0,0.1)';
+                            ]]]
+                        - backdrop-filter: blur(20px) saturate(180%)
+                        - transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)
+                      grid:
+                        - grid-template-areas: '''i n'''
+                        - grid-template-columns: min-content auto
+                        - justify-content: center
+                        - align-items: center
+                        - column-gap: 10px
+                      name:
+                        - font-family: >-
+                            -apple-system, BlinkMacSystemFont, 'SF Pro Display',
+                            'Helvetica Neue', Arial, sans-serif
+                        - font-weight: 600
+                        - font-size: 17px
+                        - letter-spacing: '-0.02em'
+                        - color: |
+                            [[[
+                              if (entity.state === 'Ten miesiąc') return 'white';
+                              return 'rgba(255,255,255,0.9)';
+                            ]]]
+                      icon:
+                        - width: 22px
+                        - height: 22px
+                        - color: |
+                            [[[
+                              if (entity.state === 'Ten miesiąc') return 'white';
+                              return 'rgba(255,255,255,0.7)';
+                            ]]]
+              - type: custom:button-card
+                entity: input_select.statystyki_czas
+                show_name: false
+                show_icon: false
+                show_state: false
+                styles:
+                  card:
+                    - background: rgba(28, 28, 30, 0.8)
+                    - border-radius: 20px
+                    - padding: 20px
+                    - box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08)
+                    - backdrop-filter: blur(20px) saturate(180%)
+                    - margin-bottom: 16px
+                    - font-family: >-
+                        -apple-system, BlinkMacSystemFont, 'SF Pro Display',
+                        'Helvetica Neue', Arial, sans-serif
+                  grid:
+                    - grid-template-areas: |
+                        "rachunek saldo"
+                    - grid-template-columns: 1fr 1fr
+                    - grid-template-rows: auto
+                    - gap: 16px
+                  custom_fields:
+                    rachunek:
+                      - align-self: stretch
+                    saldo:
+                      - align-self: stretch
+                custom_fields:
+                  rachunek: |
+                    [[[
+                      const isToday = entity.state === 'Dziś';
+                      const entityId = isToday ? 'sensor.pstryk_aio_saldo_rozliczeniowe_dzienne_pln' : 'sensor.pstryk_aio_saldo_rozliczeniowe_miesieczne_pln';
+                      const entityState = states[entityId];
+                      const state = entityState ? parseFloat(entityState.state).toFixed(2) : 'N/A';
+                      const unit = entityState && entityState.attributes.unit_of_measurement ? entityState.attributes.unit_of_measurement : 'zł';
+                      return `
+                        <div style="
+                          display: flex; flex-direction: column; justify-content: space-between; height: 100%; 
+                          background: rgba(34, 139, 34, 0.12);
+                          border-radius: 16px; padding: 20px; box-sizing: border-box;
+                          position: relative; overflow: hidden; cursor: pointer;
+                          font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+                        ">
+                          <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: auto;">
+                            <div style="
+                              width: 44px; height: 44px; border-radius: 12px; 
+                              background: rgba(34, 139, 34, 0.18);
+                              display: flex; align-items: center; justify-content: center;
+                              flex-shrink: 0;
+                            ">
+                              <ha-icon icon="mdi:scale-balance" style="color: rgb(34, 139, 34); font-size: 22px;"></ha-icon>
+                            </div>
+                            <div style="
+                              font-size: clamp(24px, 4vw, 36px); 
+                              font-weight: 600; 
+                              color: rgba(255,255,255,0.95); 
+                              line-height: 1; 
+                              font-variant-numeric: tabular-nums;
+                              text-align: right;
+                              margin-left: 12px;
+                              flex: 1;
+                            ">${state}</div>
+                          </div>
+                          <div style="text-align: center; margin-top: 8px;">
+                            <div style="font-size: 12px; color: rgba(255,255,255,0.95); font-weight: 500; margin-bottom: 4px; text-align: right;">${unit}</div>
+                            <div style="font-size: 13px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;">Rachunek</div>
+                          </div>
+                        </div>
+                      `;
+                    ]]]
+                  saldo: |
+                    [[[
+                      const isToday = entity.state === 'Dziś';
+                      const entityId = isToday ? 'sensor.pstryk_aio_saldo_energetyczne_dzienne_kwh' : 'sensor.pstryk_aio_saldo_energetyczne_miesieczne_kwh';
+                      const entityState = states[entityId];
+                      const state = entityState ? parseFloat(entityState.state).toFixed(2) : 'N/A';
+                      const unit = entityState && entityState.attributes.unit_of_measurement ? entityState.attributes.unit_of_measurement : 'kWh';
+                      return `
+                        <div style="
+                          display: flex; flex-direction: column; justify-content: space-between; height: 100%; 
+                          background: rgba(255, 140, 0, 0.12);
+                          border-radius: 16px; padding: 20px; box-sizing: border-box;
+                          position: relative; overflow: hidden; cursor: pointer;
+                          font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+                        ">
+                          <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: auto;">
+                            <div style="
+                              width: 44px; height: 44px; border-radius: 12px; 
+                              background: rgba(255, 140, 0, 0.18);
+                              display: flex; align-items: center; justify-content: center;
+                              flex-shrink: 0;
+                            ">
+                              <ha-icon icon="mdi:transmission-tower" style="color: rgb(255, 140, 0); font-size: 22px;"></ha-icon>
+                            </div>
+                            <div style="
+                              font-size: clamp(24px, 4vw, 36px); 
+                              font-weight: 600; 
+                              color: rgba(255,255,255,0.95); 
+                              line-height: 1; 
+                              font-variant-numeric: tabular-nums;
+                              text-align: right;
+                              margin-left: 12px;
+                              flex: 1;
+                            ">${state}</div>
+                          </div>
+                          <div style="text-align: center; margin-top: 8px;">
+                            <div style="font-size: 12px; color: rgba(255,255,255,0.95); font-weight: 500; margin-bottom: 4px; text-align: right;">${unit}</div>
+                            <div style="font-size: 13px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;">Saldo Energii</div>
+                          </div>
+                        </div>
+                      `;
+                    ]]]
+              - type: custom:button-card
+                entity: input_select.statystyki_czas
+                show_name: false
+                show_icon: false
+                show_state: false
+                styles:
+                  card:
+                    - background: rgba(28, 28, 30, 0.8)
+                    - border-radius: 20px
+                    - padding: 20px
+                    - box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08)
+                    - backdrop-filter: blur(20px) saturate(180%)
+                    - font-family: >-
+                        -apple-system, BlinkMacSystemFont, 'SF Pro Display',
+                        'Helvetica Neue', Arial, sans-serif
+                  grid:
+                    - grid-template-areas: |
+                        [[[
+                          if (entity.state === 'Dziś') {
+                            return `
+                              "pobrana sprzedana"
+                              "koszt_p wartosc_s"
+                              "zmarnowana_e sprzedane_t"
+                              "cena_p cena_s"
+                            `;
+                          } else {
+                            return `
+                              "pobrana sprzedana"
+                              "koszt_p wartosc_s"
+                            `;
+                          }
+                        ]]]
+                    - grid-template-columns: 1fr 1fr
+                    - grid-template-rows: |
+                        [[[
+                          if (entity.state === 'Dziś') return 'auto auto auto auto';
+                          return 'auto auto';
+                        ]]]
+                    - gap: 12px
+                  custom_fields:
+                    pobrana:
+                      - align-self: stretch
+                    sprzedana:
+                      - align-self: stretch
+                    koszt_p:
+                      - align-self: stretch
+                    wartosc_s:
+                      - align-self: stretch
+                    zmarnowana_e:
+                      - align-self: stretch
+                      - display: |
+                          [[[
+                            if (entity.state === 'Dziś') return 'block';
+                            return 'none';
+                          ]]]
+                    sprzedane_t:
+                      - align-self: stretch
+                      - display: |
+                          [[[
+                            if (entity.state === 'Dziś') return 'block';
+                            return 'none';
+                          ]]]
+                    cena_p:
+                      - align-self: stretch
+                      - display: |
+                          [[[
+                            if (entity.state === 'Dziś') return 'block';
+                            return 'none';
+                          ]]]
+                    cena_s:
+                      - align-self: stretch
+                      - display: |
+                          [[[
+                            if (entity.state === 'Dziś') return 'block';
+                            return 'none';
+                          ]]]
+                custom_fields:
+                  pobrana: |
+                    [[[
+                      const isToday = states['input_select.statystyki_czas'].state === 'Dziś';
+                      const entityId = isToday ? 'sensor.pstryk_aio_dzienne_zuzycie_energii_kwh' : 'sensor.pstryk_aio_miesieczne_zuzycie_energii_kwh';
+                      const entityState = states[entityId];
+                      const state = entityState ? parseFloat(entityState.state).toFixed(2) : 'N/A';
+                      const unit = entityState && entityState.attributes.unit_of_measurement ? entityState.attributes.unit_of_measurement : 'kWh';
+                      return `
+                        <div style="
+                          display: flex; flex-direction: column; justify-content: space-between; height: 100%; 
+                          background: rgba(220, 20, 60, 0.12);
+                          border-radius: 16px; padding: 16px; 
+                          box-sizing: border-box; position: relative; overflow: hidden; cursor: pointer;
+                          font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;">
+                          <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: auto;">
+                            <div style="width: 36px; height: 36px; border-radius: 10px; 
+                                        background: rgba(220, 20, 60, 0.18); 
+                                        display: flex; align-items: center; justify-content: center;
+                                        flex-shrink: 0;">
+                              <ha-icon icon="mdi:lightning-bolt" style="color: rgb(220, 20, 60); font-size: 18px;"></ha-icon>
+                            </div>
+                            <div style="
+                              font-size: clamp(28px, 5vw, 42px); 
+                              font-weight: 600; 
+                              color: rgba(255,255,255,0.95); 
+                              line-height: 1; 
+                              font-variant-numeric: tabular-nums;
+                              text-align: right;
+                              margin-left: 8px;
+                              flex: 1;
+                            ">${state}</div>
+                          </div>
+                          <div style="text-align: center; margin-top: 6px;">
+                            <div style="font-size: 11px; color: rgba(255,255,255,0.95); font-weight: 500; margin-bottom: 3px; text-align: right;">${unit}</div>
+                            <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;">Pobrana energia</div>
+                          </div>
+                        </div>
+                      `;
+                    ]]]
+                  sprzedana: |
+                    [[[
+                      const isToday = states['input_select.statystyki_czas'].state === 'Dziś';
+                      const entityId = isToday ? 'sensor.pstryk_aio_dzienna_produkcja_energii_kwh' : 'sensor.pstryk_aio_miesieczna_produkcja_energii_kwh';
+                      const entityState = states[entityId];
+                      let state;
+                      if (isToday && entityState && entityState.attributes && entityState.attributes.hourly_breakdown_current_day) {
+                        state = entityState.attributes.hourly_breakdown_current_day.reduce((sum, hour) => sum + parseFloat(hour.value || 0), 0).toFixed(2);
+                      } else if (entityState) {
+                        state = parseFloat(entityState.state).toFixed(2);
+                      } else {
+                        state = 'N/A';
+                      }
+                      const unit = entityState && entityState.attributes.unit_of_measurement ? entityState.attributes.unit_of_measurement : 'kWh';
+                      return `
+                        <div style="
+                          display: flex; flex-direction: column; justify-content: space-between; height: 100%; 
+                          background: rgba(34, 139, 34, 0.12);
+                          border-radius: 16px; padding: 16px; 
+                          box-sizing: border-box; position: relative; overflow: hidden; cursor: pointer;
+                          font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;">
+                          <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: auto;">
+                            <div style="width: 36px; height: 36px; border-radius: 10px; 
+                                        background: rgba(34, 139, 34, 0.18); 
+                                        display: flex; align-items: center; justify-content: center;
+                                        flex-shrink: 0;">
+                              <ha-icon icon="mdi:solar-power" style="color: rgb(34, 139, 34); font-size: 18px;"></ha-icon>
+                            </div>
+                            <div style="
+                              font-size: clamp(28px, 5vw, 42px); 
+                              font-weight: 600; 
+                              color: rgba(255,255,255,0.95); 
+                              line-height: 1; 
+                              font-variant-numeric: tabular-nums;
+                              text-align: right;
+                              margin-left: 8px;
+                              flex: 1;
+                            ">${state}</div>
+                          </div>
+                          <div style="text-align: center; margin-top: 6px;">
+                            <div style="font-size: 11px; color: rgba(255,255,255,0.95); font-weight: 500; margin-bottom: 3px; text-align: right;">${unit}</div>
+                            <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;">Sprzedana energia</div>
+                          </div>
+                        </div>
+                      `;
+                    ]]]
+                  koszt_p: |
+                    [[[
+                      const isToday = states['input_select.statystyki_czas'].state === 'Dziś';
+                      const entityId = isToday ? 'sensor.pstryk_aio_dzienne_koszty_zuzycia_energii' : 'sensor.pstryk_aio_miesieczne_koszty_zuzycia_energii_pln';
+                      const entityState = states[entityId];
+                      const state = entityState ? parseFloat(entityState.state).toFixed(2) : 'N/A';
+                      const unit = entityState && entityState.attributes.unit_of_measurement ? entityState.attributes.unit_of_measurement : 'zł';
+                      return `
+                        <div style="
+                          display: flex; flex-direction: column; justify-content: space-between; height: 100%; 
+                          background: rgba(178, 34, 34, 0.12);
+                          border-radius: 16px; padding: 16px; 
+                          box-sizing: border-box; position: relative; overflow: hidden; cursor: pointer;
+                          font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;">
+                          <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: auto;">
+                            <div style="width: 36px; height: 36px; border-radius: 10px; 
+                                        background: rgba(178, 34, 34, 0.18); 
+                                        display: flex; align-items: center; justify-content: center;
+                                        flex-shrink: 0;">
+                              <ha-icon icon="mdi:cash-minus" style="color: rgb(178, 34, 34); font-size: 18px;"></ha-icon>
+                            </div>
+                            <div style="
+                              font-size: clamp(28px, 5vw, 42px); 
+                              font-weight: 600; 
+                              color: rgba(255,255,255,0.95); 
+                              line-height: 1; 
+                              font-variant-numeric: tabular-nums;
+                              text-align: right;
+                              margin-left: 8px;
+                              flex: 1;
+                            ">${state}</div>
+                          </div>
+                          <div style="text-align: center; margin-top: 6px;">
+                            <div style="font-size: 11px; color: rgba(255,255,255,0.95); font-weight: 500; margin-bottom: 3px; text-align: right;">${unit}</div>
+                            <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;">Koszt poboru</div>
+                          </div>
+                        </div>
+                      `;
+                    ]]]
+                  wartosc_s: |
+                    [[[
+                      const isToday = states['input_select.statystyki_czas'].state === 'Dziś';
+                      const entityId = isToday ? 'sensor.pstryk_aio_dzienna_wartosc_produkcji_energii' : 'sensor.pstryk_aio_miesieczna_wartosc_produkcji_energii_pln';
+                      const entityState = states[entityId];
+                      const state = entityState ? parseFloat(entityState.state).toFixed(2) : 'N/A';
+                      const unit = entityState && entityState.attributes.unit_of_measurement ? entityState.attributes.unit_of_measurement : 'zł';
+                      return `
+                        <div style="
+                          display: flex; flex-direction: column; justify-content: space-between; height: 100%; 
+                          background: rgba(46, 125, 50, 0.12);
+                          border-radius: 16px; padding: 16px; 
+                          box-sizing: border-box; position: relative; overflow: hidden; cursor: pointer;
+                          font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;">
+                          <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: auto;">
+                            <div style="width: 36px; height: 36px; border-radius: 10px; 
+                                        background: rgba(46, 125, 50, 0.18); 
+                                        display: flex; align-items: center; justify-content: center;
+                                        flex-shrink: 0;">
+                              <ha-icon icon="mdi:cash-plus" style="color: rgb(46, 125, 50); font-size: 18px;"></ha-icon>
+                            </div>
+                            <div style="
+                              font-size: clamp(28px, 5vw, 42px); 
+                              font-weight: 600; 
+                              color: rgba(255,255,255,0.95); 
+                              line-height: 1; 
+                              font-variant-numeric: tabular-nums;
+                              text-align: right;
+                              margin-left: 8px;
+                              flex: 1;
+                            ">${state}</div>
+                          </div>
+                          <div style="text-align: center; margin-top: 6px;">
+                            <div style="font-size: 11px; color: rgba(255,255,255,0.95); font-weight: 500; margin-bottom: 3px; text-align: right;">${unit}</div>
+                            <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;">Wartość sprzedaży</div>
+                          </div>
+                        </div>
+                      `;
+                    ]]]
+                  zmarnowana_e: |
+                    [[[
+                      let wastedEnergyKwh = 0;
+                      const pricesEntity = states['sensor.pstryk_aio_obecna_cena_sprzedazy_pradu'];
+                      const productionEntity = states['sensor.pstryk_aio_dzienna_produkcja_energii_kwh'];
+
+                      if (states['input_select.statystyki_czas'].state === 'Dziś' && 
+                          pricesEntity && pricesEntity.attributes && pricesEntity.attributes.today_prices &&
+                          productionEntity && productionEntity.attributes && productionEntity.attributes.hourly_breakdown_current_day) {
+                        
+                        const todayPrices = pricesEntity.attributes.today_prices;
+                        const hourlyProduction = productionEntity.attributes.hourly_breakdown_current_day;
+                        
+                        const productionMap = new Map();
+                        hourlyProduction.forEach(prod => {
+                          productionMap.set(new Date(prod.start).toISOString(), parseFloat(prod.value || 0));
+                        });
+
+                        todayPrices.forEach(priceHour => {
+                          if (parseFloat(priceHour.price) === 0) {
+                            const productionValue = productionMap.get(new Date(priceHour.start).toISOString());
+                            if (productionValue !== undefined) {
+                              wastedEnergyKwh += productionValue;
+                            }
+                          }
+                        });
+                      }
+                      const state = wastedEnergyKwh.toFixed(2);
+                      const unit = 'kWh';
+                      return `
+                        <div style="
+                          display: flex; flex-direction: column; justify-content: space-between; height: 100%; 
+                          background: rgba(105, 105, 105, 0.12);
+                          border-radius: 16px; padding: 16px; 
+                          box-sizing: border-box; position: relative; overflow: hidden; cursor: pointer;
+                          font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;">
+                          <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: auto;">
+                            <div style="width: 36px; height: 36px; border-radius: 10px; 
+                                        background: rgba(105, 105, 105, 0.18); 
+                                        display: flex; align-items: center; justify-content: center;
+                                        flex-shrink: 0;">
+                              <ha-icon icon="mdi:power-plug-off-outline" style="color: rgb(105, 105, 105); font-size: 18px;"></ha-icon>
+                            </div>
+                            <div style="
+                              font-size: clamp(28px, 5vw, 42px); 
+                              font-weight: 600; 
+                              color: rgba(255,255,255,0.95); 
+                              line-height: 1; 
+                              font-variant-numeric: tabular-nums;
+                              text-align: right;
+                              margin-left: 8px;
+                              flex: 1;
+                            ">${state}</div>
+                          </div>
+                          <div style="text-align: center; margin-top: 6px;">
+                            <div style="font-size: 11px; color: rgba(255,255,255,0.95); font-weight: 500; margin-bottom: 3px; text-align: right;">${unit}</div>
+                            <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;">Zmarnowana energia</div>
+                          </div>
+                        </div>
+                      `;
+                    ]]]
+                  sprzedane_t: |
+                    [[[
+                      let soldCheaplyKwh = 0;
+                      const pricesEntity = states['sensor.pstryk_aio_obecna_cena_sprzedazy_pradu'];
+                      const productionEntity = states['sensor.pstryk_aio_dzienna_produkcja_energii_kwh'];
+
+                      if (states['input_select.statystyki_czas'].state === 'Dziś' && 
+                          pricesEntity && pricesEntity.attributes && pricesEntity.attributes.today_prices &&
+                          productionEntity && productionEntity.attributes && productionEntity.attributes.hourly_breakdown_current_day) {
+                        
+                        const todayPrices = pricesEntity.attributes.today_prices;
+                        const hourlyProduction = productionEntity.attributes.hourly_breakdown_current_day;
+
+                        const productionMap = new Map();
+                        hourlyProduction.forEach(prod => {
+                          productionMap.set(new Date(prod.start).toISOString(), parseFloat(prod.value || 0));
+                        });
+
+                        todayPrices.forEach(priceHour => {
+                          if (priceHour.is_cheap === true && parseFloat(priceHour.price) !== 0) {
+                            const productionValue = productionMap.get(new Date(priceHour.start).toISOString());
+                            if (productionValue !== undefined) {
+                              soldCheaplyKwh += productionValue;
+                            }
+                          }
+                        });
+                      }
+                      const state = soldCheaplyKwh.toFixed(2);
+                      const unit = 'kWh';
+                      return `
+                        <div style="
+                          display: flex; flex-direction: column; justify-content: space-between; height: 100%; 
+                          background: rgba(255, 193, 7, 0.12);
+                          border-radius: 16px; padding: 16px; 
+                          box-sizing: border-box; position: relative; overflow: hidden; cursor: pointer;
+                          font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;">
+                          <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: auto;">
+                            <div style="width: 36px; height: 36px; border-radius: 10px; 
+                                        background: rgba(255, 193, 7, 0.18); 
+                                        display: flex; align-items: center; justify-content: center;
+                                        flex-shrink: 0;">
+                              <ha-icon icon="mdi:sale" style="color: rgb(255, 193, 7); font-size: 18px;"></ha-icon>
+                            </div>
+                            <div style="
+                              font-size: clamp(28px, 5vw, 42px); 
+                              font-weight: 600; 
+                              color: rgba(255,255,255,0.95); 
+                              line-height: 1; 
+                              font-variant-numeric: tabular-nums;
+                              text-align: right;
+                              margin-left: 8px;
+                              flex: 1;
+                            ">${state}</div>
+                          </div>
+                          <div style="text-align: center; margin-top: 6px;">
+                            <div style="font-size: 11px; color: rgba(255,255,255,0.95); font-weight: 500; margin-bottom: 3px; text-align: right;">${unit}</div>
+                            <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;">Sprzedane tanio</div>
+                          </div>
+                        </div>
+                      `;
+                    ]]]
+                  cena_p: |
+                    [[[
+                      const entityId = 'sensor.pstryk_aio_obecna_cena_zakupu_pradu';
+                      const entityState = states[entityId];
+                      const state = entityState ? parseFloat(entityState.state).toFixed(2) : 'N/A';
+                      const unit = entityState && entityState.attributes.unit_of_measurement ? entityState.attributes.unit_of_measurement : 'zł/kWh';
+                      return `
+                        <div style="
+                          display: flex; flex-direction: column; justify-content: space-between; height: 100%; 
+                          background: rgba(220, 20, 60, 0.12);
+                          border-radius: 16px; padding: 16px; 
+                          box-sizing: border-box; position: relative; overflow: hidden; cursor: pointer;
+                          font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;">
+                          <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: auto;">
+                            <div style="width: 36px; height: 36px; border-radius: 10px; 
+                                        background: rgba(220, 20, 60, 0.18); 
+                                        display: flex; align-items: center; justify-content: center;
+                                        flex-shrink: 0;">
+                              <ha-icon icon="mdi:arrow-down-bold-circle-outline" style="color: rgb(220, 20, 60); font-size: 18px;"></ha-icon>
+                            </div>
+                            <div style="
+                              font-size: clamp(28px, 5vw, 42px); 
+                              font-weight: 600; 
+                              color: rgba(255,255,255,0.95); 
+                              line-height: 1; 
+                              font-variant-numeric: tabular-nums;
+                              text-align: right;
+                              margin-left: 8px;
+                              flex: 1;
+                            ">${state}</div>
+                          </div>
+                          <div style="text-align: center; margin-top: 6px;">
+                            <div style="font-size: 11px; color: rgba(255,255,255,0.95); font-weight: 500; margin-bottom: 3px; text-align: right;">${unit}</div>
+                            <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;">Cena poboru teraz</div>
+                          </div>
+                        </div>
+                      `;
+                    ]]]
+                  cena_s: |
+                    [[[
+                      const entityId = 'sensor.pstryk_aio_obecna_cena_sprzedazy_pradu';
+                      const entityState = states[entityId];
+                      const state = entityState ? parseFloat(entityState.state).toFixed(2) : 'N/A';
+                      const unit = entityState && entityState.attributes.unit_of_measurement ? entityState.attributes.unit_of_measurement : 'zł/kWh';
+                      return `
+                        <div style="
+                          display: flex; flex-direction: column; justify-content: space-between; height: 100%; 
+                          background: rgba(76, 175, 80, 0.12);
+                          border-radius: 16px; padding: 16px; 
+                          box-sizing: border-box; position: relative; overflow: hidden; cursor: pointer;
+                          font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;">
+                          <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: auto;">
+                            <div style="width: 36px; height: 36px; border-radius: 10px; 
+                                        background: rgba(76, 175, 80, 0.18); 
+                                        display: flex; align-items: center; justify-content: center;
+                                        flex-shrink: 0;">
+                              <ha-icon icon="mdi:arrow-up-bold-circle-outline" style="color: rgb(76, 175, 80); font-size: 18px;"></ha-icon>
+                            </div>
+                            <div style="
+                              font-size: clamp(28px, 5vw, 42px); 
+                              font-weight: 600; 
+                              color: rgba(255,255,255,0.95); 
+                              line-height: 1; 
+                              font-variant-numeric: tabular-nums;
+                              text-align: right;
+                              margin-left: 8px;
+                              flex: 1;
+                            ">${state}</div>
+                          </div>
+                          <div style="text-align: center; margin-top: 6px;">
+                            <div style="font-size: 11px; color: rgba(255,255,255,0.95); font-weight: 500; margin-bottom: 3px; text-align: right;">${unit}</div>
+                            <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;">Cena sprzedaży teraz</div>
+                          </div>
+                        </div>
+                      `;
+                    ]]]
+          - type: custom:apexcharts-card
+            experimental:
+              color_threshold: true
+            layout: minimal
+            header:
+              show: true
+              title: Pstryk ceny prądu (Jutro)
+              show_states: true
+              colorize_states: true
+            graph_span: 23h
+            span:
+              start: day
+              offset: +1d
+            series:
+              - entity: sensor.pstryk_aio_cena_zakupu_pradu_jutro
+                name: Cena zakupu (Jutro)
+                type: column
+                float_precision: 2
+                show:
+                  legend_value: false
+                data_generator: |
+                  EVAL:
+                    if (entity && entity.attributes && entity.attributes.tomorrow_prices) {
+                      const prices = entity.attributes.tomorrow_prices;
+                      const sortedPrices = prices.sort((a, b) => new Date(a.start) - new Date(b.start));
+                      return sortedPrices.map(item => {
+                        const timestamp = new Date(item.start).getTime();
+                        const price = parseFloat(item.price);
+                        return [timestamp, price];
+                      });
+                    }
+                    return [];
+                color_threshold:
+                  - value: 0
+                    color: 4CAF50
+                  - value: 0.5
+                    color: FFEB3B
+                  - value: 1
+                    color: FF9800
+                  - value: 1.5
+                    color: F44336
+              - entity: sensor.pstryk_aio_cena_sprzedazy_pradu_jutro
+                name: Cena sprzedaży (Jutro)
+                type: line
+                stroke_width: 2
+                float_precision: 2
+                show:
+                  legend_value: false
+                data_generator: |
+                  EVAL:
+                    if (entity && entity.attributes && entity.attributes.tomorrow_prices) {
+                      const prices = entity.attributes.tomorrow_prices;
+                      const sortedPrices = prices.sort((a, b) => new Date(a.start) - new Date(b.start));
+                      return sortedPrices.map(item => {
+                        const timestamp = new Date(item.start).getTime();
+                        const price = parseFloat(item.price);
+                        return [timestamp, price];
+                      });
+                    }
+                    return [];
+                color_threshold:
+                  - value: 0
+                    color: CB0404
+                  - value: 0.25
+                    color: FF9D23
+                  - value: 0.5
+                    color: E7FBB4
+                  - value: 0.75
+                    color: 85A947
+                  - value: 1
+                    color: 85A947
+                  - value: 1.5
+                    color: '123524'
+            yaxis:
+              - show: false
+            apex_config:
+              chart:
+                height: 200px
+                zoom:
+                  enabled: true
+                  type: x
+                  autoScaleYaxis: true
+                pan:
+                  enabled: true
+                  type: x
+                toolbar:
+                  show: true
+                  tools:
+                    zoom: true
+                    zoomin: true
+                    zoomout: true
+                    pan: true
+                    reset: true
+                background: transparent
+              plotOptions:
+                bar:
+                  columnWidth: 80%
+              tooltip:
+                enabled: true
+                shared: true
+                intersect: false
+                x:
+                  format: HH:mm
+                'y':
+                  formatter: >
+                    EVAL:function(value, { series, seriesIndex, dataPointIndex,
+                    w }) {
+                      if (value === null || typeof value === 'undefined') return '';
+                      // Można dodać nazwę serii do tooltipa, skoro legenda jest ukryta
+                      // const seriesName = w.globals.seriesNames[seriesIndex];
+                      // return seriesName + ': ' + value.toFixed(2) + ' zł';
+                      return value.toFixed(2) + ' zł';
+                    }
+              xaxis:
+                labels:
+                  show: false
+                axisBorder:
+                  show: false
+                axisTicks:
+                  show: false
+              legend:
+                show: false
+          - type: custom:mini-graph-card
+            name: Pstryk zakup i sprzedaż dziennie
+            entities:
+              - entity: sensor.pstryk_aio_dzienne_koszty_zuzycia_energii
+                name: Zakup dziennie
+                show_state: false
+                color: '#007AFF'
+              - entity: sensor.pstryk_aio_dzienna_wartosc_produkcji_energii
+                name: Sprzedaż dziennie
+                show_state: false
+                color: '#34C759'
+              - entity: sensor.pstryk_aio_saldo_rozliczeniowe_dzienne_pln
+                name: Dzienne rachunki
+                show_state: false
+                color: '#FF9500'
+            show:
+              graph: bar
+              labels: false
+            hours_to_show: 240
+            group_by: date
+            height: 100
+            bar_spacing: 6
+            fill: false
+            animate: true
+            font_size: 80
+            decimal_precision: 2
+    type: sections
+    max_columns: 4
+    cards: []
