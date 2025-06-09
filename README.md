@@ -46,6 +46,20 @@ Po ponownym uruchomieniu Home Assistant:
 
 Integracja utworzy sensory dla dostępnych danych.
 
+## Przykładowe Zastosowanie (Dashboard i Grafiki)
+
+Poniżej znajdują się przykłady, jak można wykorzystać sensory dostarczane przez integrację Pstryk AIO do zbudowania własnych dashboardów i wizualizacji w Home Assistant.
+
+### Przykładowy Dashboard
+
+Możesz stworzyć przejrzysty dashboard pokazujący kluczowe informacje o cenach energii, zużyciu i produkcji.
+
+![Przykładowy dashboard](custom_components/images/dashboard_example.png)
+
+### Przykładowe Grafiki
+
+Sensory z danymi historycznymi (np. ceny godzinowe, dzienne zużycie) świetnie nadają się do tworzenia wykresów.
+![Przykładowa grafika](custom_components/images/graph_example.png)
 ## Sensory
 
 Integracja tworzy następujące sensory:

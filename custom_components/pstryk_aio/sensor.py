@@ -532,7 +532,7 @@ class PstrykUniversalSensor(CoordinatorEntity, SensorEntity):
                     )
                 else:
                     new_value = None
-                    attributes[ATTR_DATA_STATUS_MESSAGE] = "Dane będą dostępne po godzinie 16:00"
+                    attributes[ATTR_DATA_STATUS_MESSAGE] = "Dane przeważnie są dostępne po godzinie 16:00"
                     _LOGGER.debug(f"({self.name}) Brak danych o cenach zakupu na jutro, ustawiam stan na None i komunikat w atrybutach.")
                 if has_real_data_tomorrow and (avg_price_tomorrow := self._calculate_average_price(pricing_purchase_tomorrow)) is not None:
                     attributes[f"{ATTR_AVERAGE_PRICE}_tomorrow"] = avg_price_tomorrow
@@ -580,7 +580,7 @@ class PstrykUniversalSensor(CoordinatorEntity, SensorEntity):
                     )
                 else:
                     new_value = None
-                    attributes[ATTR_DATA_STATUS_MESSAGE] = "Dane będą dostępne po godzinie 16:00"
+                    attributes[ATTR_DATA_STATUS_MESSAGE] = "Dane przeważnie są dostępne po godzinie 16:00"
                     _LOGGER.debug(f"({self.name}) Brak danych o cenach sprzedaży na jutro, ustawiam stan na None i komunikat w atrybutach.")
                 if has_real_data_tomorrow_sale and (avg_price_tomorrow := self._calculate_average_price(pricing_prosumer_tomorrow)) is not None:
                     attributes[f"{ATTR_AVERAGE_PRICE}_tomorrow"] = avg_price_tomorrow
