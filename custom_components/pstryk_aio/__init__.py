@@ -108,6 +108,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             
             if pricing_purchase_today_response is None: pricing_purchase_today_response = {}
 
+            # --- Logika resetowania cache dla danych "na jutro" przy zmianie dnia ---
+            # Sprawdź, czy obliczamy dla nowego "jutra" w porównaniu do ostatnio buforowanej daty "jutra"
+            if coordinator._date_prices_tomorrow_valid_for != tomorrow_local_date:
+                _LOGGER.info(
+                    f"Wykryto nowy dzień dla danych 'jutro': {tomorrow_local_date}. "
+                    f"Poprzedni cache 'jutro' był dla: {coordinator._date_prices_tomorrow_valid_for}. "
+                    "Resetowanie buforów cen zakupu i sprzedaży na jutro."
+                )
+                coordinator._cached_purchase_prices_tomorrow = {}  # Resetuj bufor zakupu na jutro
+                coordinator._cached_prosumer_prices_tomorrow = {}  # Resetuj bufor sprzedaży na jutro
+                coordinator._date_prices_tomorrow_valid_for = tomorrow_local_date # Ustaw nową datę ważności dla "jutra"
+
+
             def _has_meaningful_price_data(response_data: Optional[dict]) -> bool:
                 if not response_data or not isinstance(response_data.get("frames"), list):
                     return False
@@ -148,20 +161,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
             pricing_purchase_tomorrow_response: Optional[dict] = None
-            if (coordinator._date_prices_tomorrow_valid_for == tomorrow_local_date and
-                    coordinator._cached_purchase_prices_tomorrow and
+            # Po potencjalnym resecie powyżej, _date_prices_tomorrow_valid_for jest już ustawione na tomorrow_local_date
+            if (coordinator._cached_purchase_prices_tomorrow and
                     coordinator._cached_purchase_prices_tomorrow.get("frames")):
                 _LOGGER.debug(f"Używanie zbuforowanych cen ZAKUPU na jutro ({tomorrow_local_date}).")
                 pricing_purchase_tomorrow_response = coordinator._cached_purchase_prices_tomorrow
             else:
-                log_prefix = ""
-                if coordinator._date_prices_tomorrow_valid_for != tomorrow_local_date and coordinator._date_prices_tomorrow_valid_for is not None:
-                    log_prefix = f"Cache dla cen ZAKUPU na jutro był dla {coordinator._date_prices_tomorrow_valid_for}. "
-                elif not coordinator._cached_purchase_prices_tomorrow or not coordinator._cached_purchase_prices_tomorrow.get("frames"):
-                    log_prefix = f"Cache dla cen ZAKUPU na jutro ({tomorrow_local_date}) jest pusty/nie zawiera ramek. "
-                
-                _LOGGER.info(f"{log_prefix}Próba pobrania nowych cen ZAKUPU na jutro ({tomorrow_local_date}).")
-
+                _LOGGER.info(
+                    f"Próba pobrania nowych cen ZAKUPU na jutro ({tomorrow_local_date}). "
+                    "Cache był pusty lub nie zawierał ramek (mógł zostać zresetowany lub poprzednia próba nie powiodła się)."
+                )
                 api_response = await api_client.get_integrations_pricing_data(
                     resolution="hour", window_start=tomorrow_start_utc, window_end=tomorrow_end_utc
                 )
@@ -169,7 +178,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                    _are_frames_for_expected_date(api_response, tomorrow_local_date):
                     pricing_purchase_tomorrow_response = api_response
                     coordinator._cached_purchase_prices_tomorrow = api_response
-                    coordinator._date_prices_tomorrow_valid_for = tomorrow_local_date # Wspólny znacznik daty dla cache'u "na jutro"
                     _LOGGER.info(f"Pomyślnie pobrano i zbuforowano ceny ZAKUPU na jutro ({tomorrow_local_date}) z rzeczywistymi danymi.")
                 else:
                     reason = "brak znaczących danych"
@@ -180,7 +188,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                         "Ponowna próba pobrania nastąpi po interwale czasowym ustawiony w konfiguracji."
                     )
                     coordinator._cached_purchase_prices_tomorrow = {} # Zapisz pusty słownik, aby oznaczyć próbę
-                    coordinator._date_prices_tomorrow_valid_for = tomorrow_local_date # Oznacz, że ten pusty cache jest dla `tomorrow_local_date`
                     pricing_purchase_tomorrow_response = {} 
             
             if pricing_purchase_tomorrow_response is None: pricing_purchase_tomorrow_response = {}
@@ -214,20 +221,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
             # --- Logika pobierania lub używania zbuforowanych cen SPRZEDAŻY (prosument) na jutro ---
             pricing_prosumer_tomorrow_response: Optional[dict] = None
-            if (coordinator._date_prices_tomorrow_valid_for == tomorrow_local_date and
-                    coordinator._cached_prosumer_prices_tomorrow and
+            # Po potencjalnym resecie powyżej, _date_prices_tomorrow_valid_for jest już ustawione na tomorrow_local_date
+            if (coordinator._cached_prosumer_prices_tomorrow and
                     coordinator._cached_prosumer_prices_tomorrow.get("frames")):
                 _LOGGER.debug(f"Używanie zbuforowanych cen SPRZEDAŻY na jutro ({tomorrow_local_date}).")
                 pricing_prosumer_tomorrow_response = coordinator._cached_prosumer_prices_tomorrow
             else:
-                log_prefix_prosumer = ""
-                if coordinator._date_prices_tomorrow_valid_for != tomorrow_local_date and coordinator._date_prices_tomorrow_valid_for is not None:
-                    log_prefix_prosumer = f"Ogólny cache 'na jutro' był dla {coordinator._date_prices_tomorrow_valid_for} (ceny sprzedaży). "
-                elif not coordinator._cached_prosumer_prices_tomorrow or not coordinator._cached_prosumer_prices_tomorrow.get("frames"):
-                    log_prefix_prosumer = f"Cache dla cen SPRZEDAŻY na jutro ({tomorrow_local_date}) jest pusty/nie zawiera ramek. "
-
-                _LOGGER.info(f"{log_prefix_prosumer}Próba pobrania nowych cen SPRZEDAŻY na jutro ({tomorrow_local_date}).")
-                
+                _LOGGER.info(
+                    f"Próba pobrania nowych cen SPRZEDAŻY na jutro ({tomorrow_local_date}). "
+                    "Cache był pusty lub nie zawierał ramek (mógł zostać zresetowany lub poprzednia próba nie powiodła się)."
+                )
                 api_response_prosumer = await api_client.get_integrations_prosumer_pricing_data(
                     resolution="hour", window_start=tomorrow_start_utc, window_end=tomorrow_end_utc
                 )
@@ -235,9 +238,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                    _are_frames_for_expected_date(api_response_prosumer, tomorrow_local_date):
                     pricing_prosumer_tomorrow_response = api_response_prosumer
                     coordinator._cached_prosumer_prices_tomorrow = api_response_prosumer
-                    if coordinator._date_prices_tomorrow_valid_for != tomorrow_local_date:
-                        coordinator._date_prices_tomorrow_valid_for = tomorrow_local_date
-                        _LOGGER.info(f"Data ważności cache 'na jutro' ({tomorrow_local_date}) ustawiona przez ceny SPRZEDAŻY (z rzeczywistymi danymi).")
                     _LOGGER.info(f"Pomyślnie pobrano i zbuforowano ceny SPRZEDAŻY na jutro ({tomorrow_local_date}) z rzeczywistymi danymi.")
                 else:
                     reason_prosumer = "brak znaczących danych"
@@ -248,8 +248,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                         "Ponowna próba pobrania nastąpi po interwale czasowym ustawionym w konfiguracji."
                     )
                     coordinator._cached_prosumer_prices_tomorrow = {} # Cache pusty, aby wymusić ponowienie
-                    if coordinator._date_prices_tomorrow_valid_for != tomorrow_local_date:
-                         coordinator._date_prices_tomorrow_valid_for = tomorrow_local_date
                     pricing_prosumer_tomorrow_response = {}
             
             if pricing_prosumer_tomorrow_response is None: pricing_prosumer_tomorrow_response = {}
