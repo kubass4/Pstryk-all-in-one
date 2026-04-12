@@ -79,7 +79,7 @@ Integracja tworzy następujące sensory:
 
 Jeśli napotkasz problemy, otwórz zgłoszenie (issue) w tym repozytorium: `https://github.com/kubass4/Pstryk-all-in-one/issues`.
 
-## Autor
+## Autorzy
 
 kubass4 - autor integracji do wersji v0.1.2
 
