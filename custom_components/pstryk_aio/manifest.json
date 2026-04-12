@@ -1,16 +1,16 @@
 {
   "domain": "pstryk_aio",
-  "name": "Pstryk AiO",
-  "documentation": "https://github.com/kubass4/Pstryk-all-in-one",
-  "issue_tracker": "https://github.com/kubass4/Pstryk-all-in-one/issues",
+  "name": "Pstryk AiO 2.0",
+  "documentation": "https://github.com/sebekmik/Pstryk-all-in-one",
+  "issue_tracker": "https://github.com/sebekmik/Pstryk-all-in-one/issues",
   "requirements": [
     "aiohttp>=3.9.0"
   ],
   "codeowners": [
-    "@kubass4"
+    "@sebekmik"
   ],
   "iot_class": "cloud_polling",
-"version": "v0.1.2",
+"version": "v0.2.0",
   "config_flow": true,
   "dependencies": [],
   "after_dependencies": []

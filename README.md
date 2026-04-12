@@ -1,5 +1,5 @@
 # Pstryk All in One - Home Assistant 
-[![Buy me a coffee](https://img.buymeacoffee.com/button-api/?slug=kubass4&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=FFFFFF&text=Buy+me+a+coffee)](https://www.buymeacoffee.com/kubass4)
+[![Buy me a coffee](https://img.buymeacoffee.com/button-api/?slug=sebekmik&button_colour=FFDD00&font_colour=000000&font_family=Inter&outline_colour=000000&coffee_colour=FFFFFF&text=Buy+me+a+coffee)](https://www.buymeacoffee.com/sebekmik)
 
 Integracja Home Assistant dla serwisu Pstryk.pl, zapewniająca dostęp do danych o cenach energii (zakup/sprzedaż), zużyciu, produkcji, kosztach i saldzie rozliczeniowym.
 
@@ -79,9 +79,11 @@ Integracja tworzy następujące sensory:
 
 Jeśli napotkasz problemy, otwórz zgłoszenie (issue) w tym repozytorium: `https://github.com/kubass4/Pstryk-all-in-one/issues`.
 
-## Autor
+## Autorzy
 
-kubass4
+kubass4 - autor integracji do wersji v0.1.2
+
+sebekmik - autor poprawek w zakresie nowego API - wersja v0.1.3
 
 ## Licencja
 
