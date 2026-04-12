@@ -81,7 +81,8 @@ Jeśli napotkasz problemy, otwórz zgłoszenie (issue) w tym repozytorium: `http
 
 ## Autor
 
-kubass4
+kubass4 - autor integracji do wersji v0.1.2
+sebekmik - autor poprawek w zakresie nowego API - wersja v0.1.3
 
 ## Licencja
 
