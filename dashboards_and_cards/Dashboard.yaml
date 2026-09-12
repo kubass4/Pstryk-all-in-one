@@ -2249,10 +2249,10 @@ views:
           - type: custom:mini-graph-card
             name: Pstryk ceny prądu
             entities:
-              - entity: sensor.pstryk_aio_current_purchase_price
+              - entity: sensor.pstryk_aio_obecna_cena_zakupu_pradu
                 name: Cena zakupu
                 show_state: true
-              - entity: sensor.pstryk_aio_current_sale_price
+              - entity: sensor.pstryk_aio_obecna_cena_sprzedazy_pradu
                 name: Cena sprzedaży
                 show_state: true
             show:
